@@ -1,0 +1,29 @@
+[Unit]
+Description=Cadence Democracy Engine Core & Decentralized Network Agent
+After=network.target wireguard.service
+Documentation=https://github.com
+
+[Service]
+# Execution Parameters
+Type=simple
+User=root
+WorkingDirectory=/opt/cadence-democracy
+ExecStart=/usr/bin/node /opt/cadence-democracy/server.js
+
+# Automated Self-Healing Guardrails
+Restart=always
+RestartSec=5s
+
+# Logging Configurations
+StandardOutput=append:/var/log/cadence_public_runtime.log
+StandardError=append:/var/log/cadence_system_errors.log
+
+# Sandbox Security Isolation Features
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/cadence-democracy /var/log
+PrivateTmp=true
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

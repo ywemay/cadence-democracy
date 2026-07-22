@@ -1,0 +1,10 @@
+node_modules/
+npm-debug.log*
+cadence_ledger.json
+public_ledger.html
+public_runtime.log
+pending_ticket.txt
+*.log
+.DS_Store
+*.swp
+*.swo

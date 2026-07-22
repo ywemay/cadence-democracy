@@ -1,0 +1,20 @@
+{
+  "name": "cadence-democracy",
+  "version": "1.0.0-beta",
+  "description": "Federated, glass-box continuous direct democracy protocol",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/seed-ledger.js",
+    "ledger": "node src/ledger-generator.js",
+    "cycle": "node src/cycle-closer.js",
+    "backup": "node src/backup-worker.js",
+    "printer": "node src/printer-agent.js"
+  },
+  "keywords": ["democracy", "voting", "federated", "direct-democracy"],
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

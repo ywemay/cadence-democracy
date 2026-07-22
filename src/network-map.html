@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadence Democracy Network Map</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --status-online: #3fb950;
+            --status-offline: #8b949e;
+            --status-alert: #da3637;
+            --accent-blue: #58a6ff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1, h2, h3, h4 { margin: 0; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1000px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .topology-view {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas {
+            background-color: #090c10;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+        }
+
+        .peer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .peer-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .peer-card:hover {
+            transform: scale(1.01);
+        }
+
+        .peer-card.quarantined {
+            border-color: #482323;
+            background-color: #1c1212;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .badge-online { background-color: rgba(63, 185, 80, 0.15); color: var(--status-online); border: 1px solid var(--status-online); }
+        .badge-quarantined { background-color: rgba(218, 54, 55, 0.15); color: var(--status-alert); border: 1px solid var(--status-alert); }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .quarantine-alert-box {
+            background-color: #2b1414;
+            border: 1px solid var(--status-alert);
+            color: #ff9494;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>Cadence Grid Topology Panel</h1>
+            <p style="color: var(--text-muted); margin: 5px 0 0 0;">Observability Map: Federated Barn Clusters</p>
+        </div>
+        <div style="text-align: right; font-family: monospace; font-size: 0.9rem; color: var(--text-muted);">
+            Network Consensus Rate: <span style="color: var(--status-online); font-weight: bold;">100% Verified</span>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <section class="peer-list">
+            <h2>Active Nodes List</h2>
+
+            <div class="peer-card" style="border-color: var(--accent-blue);">
+                <div class="card-header">
+                    <h3>barn_04_maharashtra</h3>
+                    <span class="badge" style="background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue);">Local Core</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Bhiwandi District Barn, Maharashtra</p>
+                <div class="metric-grid">
+                    <div>Tunnel IP: 10.0.0.4</div>
+                    <div>Radio Mesh IP: 10.1.0.4</div>
+                </div>
+            </div>
+
+            <div class="peer-card">
+                <div class="card-header">
+                    <h3>barn_01_gujarat</h3>
+                    <span class="badge badge-online">Online</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Anand District Barn, Gujarat</p>
+                <div class="metric-grid">
+                    <div>Sync: 2026-07-21 16:02</div>
+                    <div>Voter Pool: 1,420 Humans</div>
+                    <div>Gossip Count: 89,432</div>
+                    <div>Priority Weight: 10</div>
+                </div>
+            </div>
+
+            <div class="peer-card">
+                <div class="card-header">
+                    <h3>barn_02_madhya_pradesh</h3>
+                    <span class="badge badge-online">Online</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Indore District Barn, MP</p>
+                <div class="metric-grid">
+                    <div>Sync: 2026-07-21 16:04</div>
+                    <div>Voter Pool: 980 Humans</div>
+                    <div>Gossip Count: 41,203</div>
+                    <div>Priority Weight: 10</div>
+                </div>
+            </div>
+
+            <div class="peer-card quarantined">
+                <div class="card-header">
+                    <h3 style="color: #ff9494;">barn_03_goa_captured_shell</h3>
+                    <span class="badge badge-quarantined">Quarantined</span>
+                </div>
+                <p style="font-size: 0.85rem; color: #ff9494;">Location: Panaji Node (Occupied/Corrupt)</p>
+                <div class="quarantine-alert-box">
+                    CRITICAL_INTEGRITY_MISMATCH: System log streams failed automated 51% validation audits. Node flagged as occupied/corrupted by centralized forces. Traffic paths severed.
+                </div>
+            </div>
+        </section>
+
+        <section class="topology-view">
+            <h2 style="margin-bottom: 20px; align-self: flex-start;">Live Routing Visualization</h2>
+            <canvas id="topologyCanvas" width="600" height="400"></canvas>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 15px; text-align: center;">
+                Interactive Graphic Engine: Green links simulate active WireGuard Tunnels. Red nodes represent isolated/forked systems operating outside network consensus rules.
+            </p>
+        </section>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('topologyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const nodes = [
+            { id: 'barn_04', label: 'Local Node (04)', x: 300, y: 280, status: 'local' },
+            { id: 'barn_01', label: 'Barn 01 (GJ)', x: 150, y: 120, status: 'online' },
+            { id: 'barn_02', label: 'Barn 02 (MP)', x: 450, y: 120, status: 'online' },
+            { id: 'barn_03', label: 'Barn 03 (GA)', x: 300, y: 40, status: 'quarantined' }
+        ];
+
+        function drawTopologyNetwork() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.lineWidth = 2;
+
+            ctx.strokeStyle = '#238636';
+            ctx.beginPath(); ctx.moveTo(300, 280); ctx.lineTo(150, 120); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(300, 280); ctx.lineTo(450, 120); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(150, 120); ctx.lineTo(450, 120); ctx.stroke();
+
+            ctx.strokeStyle = '#da3637';
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(450, 120); ctx.lineTo(300, 40); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(150, 120); ctx.lineTo(300, 40); ctx.stroke();
+            ctx.setLineDash([]);
+
+            nodes.forEach(node => {
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 16, 0, 2 * Math.PI);
+                if (node.status === 'local') ctx.fillStyle = '#58a6ff';
+                else if (node.status === 'online') ctx.fillStyle = '#3fb950';
+                else if (node.status === 'quarantined') ctx.fillStyle = '#da3637';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.fillStyle = '#c9d1d9';
+                ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.label, node.x, node.y + 32);
+            });
+        }
+
+        drawTopologyNetwork();
+        window.addEventListener('resize', drawTopologyNetwork);
+    </script>
+</body>
+</html>
