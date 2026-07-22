@@ -28,16 +28,18 @@ Cadence Democracy is an open-source protocol for continuous direct democracy wit
 cadence-democracy/
 ├── src/              # Application source code
 │   ├── server.js              — Core HTTP server & routing
-│   ├── index.html             — Dashboard UI
-│   ├── network-routes.js      — Network topology API
-│   ├── network-map.html       — Visual network panel
+│   ├── index.html             — Proposals list
+│   ├── proposal.html          — Proposal detail + voting
+│   ├── network-map.html       — Leaflet barn federation map
+│   ├── notifications.html     — Live event stream (SSE)
+│   ├── recovery.html          — Social key recovery
+│   ├── styles/base.css        — Shared stylesheet
+│   ├── known-barns.json       — Network peer configuration
 │   ├── ledger-generator.js    — Public ledger HTML builder
 │   ├── backup-worker.js       — Automated backup sync
 │   ├── cycle-closer.js        — Deadline enforcement
 │   ├── printer-agent.js       — Physical key printer agent
-│   ├── seed-ledger.js         — Test data seeder
-│   ├── notifications.html     — Real-time notification widget
-│   └── known-barns.json       — Network peer configuration
+│   └── seed-ledger.js         — Test data seeder
 ├── scripts/          # Deployment & infrastructure scripts
 │   ├── orchestrate-cadence.sh — Full-stack orchestrator
 │   ├── setup-cadence.sh       — Hardware initialization
@@ -45,7 +47,7 @@ cadence-democracy/
 ├── docs/             # Documentation
 │   ├── concepts/              — Philosophy, SDD, brainstorm
 │   ├── guides/                — Operational how-tos
-│   ├── specs/                 — Technical specifications
+│   ├── reference/             — Technical specifications
 │   └── faq/                   — Frequently asked questions
 ├── package.json
 └── README.md

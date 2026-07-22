@@ -305,6 +305,12 @@ function timeRemaining(ts) {
 
 loadData();
 loadDemoKeys();
+// SSE: refresh on vote for current proposal
+const evtSource = new EventSource('/api/events');
+evtSource.addEventListener('vote-cast', (e) => {
+    const data = JSON.parse(e.data);
+    if (data.proposal_id === currentPropId) loadData();
+});
 </script>
 </body>
 </html>

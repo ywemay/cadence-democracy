@@ -18,6 +18,17 @@ let nextProposalId = 106;
 // Plaintext keys for demo users — NEVER store this in production
 const DEMO_KEYS = {};
 
+// SSE event system
+const sseClients = new Set();
+
+function emitEvent(event, data) {
+    const msg = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+    sseClients.forEach(client => {
+        try { client.write(msg); }
+        catch { sseClients.delete(client); }
+    });
+}
+
 function writeToPublicLog(action, details) {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ACTION: ${action} | DETAILS: ${JSON.stringify(details)}\n`;
@@ -200,6 +211,20 @@ const server = http.createServer((req, res) => {
     if (method === 'GET' && url === '/proposal.html')
         return serveStatic(res, path.join(__dirname, 'proposal.html'), 'text/html');
 
+    // API: Server-Sent Events stream
+    if (method === 'GET' && url === '/api/events') {
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+        });
+        res.write(`event: connected\ndata: {}\n\n`);
+        sseClients.add(res);
+        req.on('close', () => sseClients.delete(res));
+        return;
+    }
+
     // API: Full state (proposals + electorate info)
     if (method === 'GET' && url === '/api/state') {
         const totalElectorate = Object.keys(db.electorate).length;
@@ -258,6 +283,7 @@ const server = http.createServer((req, res) => {
             calculateElasticClock(proposal_id);
             fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
             writeToPublicLog('VOTE_RECORDED', { user_id, proposal_id, vote_type });
+            emitEvent('vote-cast', { user_id, proposal_id, vote_type, votes_pro: prop.votes_pro, votes_con: prop.votes_con });
             return jsonResponse(res, 200, { success: true });
         });
     }
@@ -302,6 +328,7 @@ const server = http.createServer((req, res) => {
 
             fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
             writeToPublicLog('PROPOSAL_CREATED', { id, proposer: user_id, text: text.trim() });
+            emitEvent('proposal-created', { id, text: text.trim(), proposer: user_id });
             return jsonResponse(res, 200, { success: true, proposal: db.proposals[id] });
         });
     }

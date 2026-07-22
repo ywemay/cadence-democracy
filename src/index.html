@@ -274,7 +274,11 @@ function showMsg(id, text, type) {
 
 loadState();
 loadDemoKeys();
-setInterval(loadState, 10000);
+// SSE-driven live updates (fallback polling every 60s)
+const evtSource = new EventSource('/api/events');
+evtSource.addEventListener('vote-cast', loadState);
+evtSource.addEventListener('proposal-created', loadState);
+setInterval(loadState, 60000);
 </script>
 </body>
 </html>
