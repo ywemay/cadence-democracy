@@ -6,425 +6,478 @@
     <title>Cadence Democracy Dashboard</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent-green: #238636;
-            --accent-red: #da3637;
-            --accent-blue: #58a6ff;
-            --accent-yellow: #e3b341;
+            --bg: #0d1117; --card: #161b22; --border: #30363d;
+            --text: #c9d1d9; --muted: #8b949e;
+            --green: #238636; --red: #da3637; --blue: #58a6ff; --yellow: #e3b341;
         }
-
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.5;
+            background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5;
         }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; }
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px;
+            background: #3fb950; border-radius: 50%; margin-right: 5px;
+        }
+        .nav-links { display: flex; gap: 15px; font-size: 0.85rem; }
+        .nav-links a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .nav-links a:hover { background: var(--card); }
+
+        .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+        /* Proposals */
+        .prop-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 20px; margin-bottom: 16px;
+        }
+        .prop-card.expired { opacity: 0.5; border-color: var(--red); }
+        .prop-card h3 { margin: 0 0 8px 0; font-size: 1rem; }
+        .prop-card p { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px 0; }
+        .prop-meta { display: flex; justify-content: space-between; font-size: 0.8rem; flex-wrap: wrap; gap: 8px; }
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; background: #21262d; border: 1px solid var(--border); }
+        .badge-pro { color: var(--green); border-color: var(--green); }
+        .badge-con { color: var(--red); border-color: var(--red); }
+        .tally-bar {
+            display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+            background: #21262d; margin-top: 10px;
+        }
+        .tally-bar .pro { background: var(--green); transition: width 0.3s; }
+        .tally-bar .con { background: var(--red); transition: width 0.3s; }
+
+        /* Voting vault */
+        .vault {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 20px; height: fit-content;
+        }
+        .vault h3 { margin: 0 0 5px 0; }
+        .vault .hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 15px; }
+
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 8px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-family: monospace; font-size: 0.85rem;
+        }
+        .form-group select { cursor: pointer; }
+
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; font-size: 0.9rem; }
+        .btn-pro { background: var(--green); }
+        .btn-pro:hover { background: #2ea043; }
+        .btn-con { background: var(--red); }
+        .btn-con:hover { background: #f85149; }
+        .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); width: 100%; margin-top: 10px; font-size: 0.8rem; }
+        .btn-secondary:hover { background: #30363d; }
+
+        /* Demo keys panel */
+        .keys-panel {
+            margin-top: 20px; background: #111820; border: 1px dashed #30363d;
+            border-radius: 6px; padding: 15px;
+        }
+        .keys-panel h4 { margin: 0 0 10px 0; font-size: 0.85rem; color: var(--yellow); }
+        .user-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 8px; border-bottom: 1px solid #21262d; font-size: 0.8rem;
+            font-family: monospace; cursor: pointer; border-radius: 3px;
+        }
+        .user-row:hover { background: #1c2533; }
+        .user-row .keys { color: var(--muted); font-size: 0.7rem; }
+        .user-row.active { background: #1a2a1a; border-left: 2px solid var(--green); }
+
+        /* Status bar */
+        .status-bar {
+            display: flex; gap: 20px; font-size: 0.8rem; color: var(--muted);
+            margin-bottom: 20px; flex-wrap: wrap;
         }
 
-        h1, h2, h3 { margin: 0; }
-
-        .system-status {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            text-align: right;
+        /* Recovery section */
+        .recovery-panel {
+            margin-top: 30px; background: #1c1212; border: 1px solid #482323;
+            border-radius: 6px; padding: 20px; display: none;
         }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: #3fb950;
-            border-radius: 50%;
-            margin-right: 5px;
+        .recovery-panel.visible { display: block; }
+        .recovery-panel h3 { margin: 0 0 5px 0; color: #ff9494; }
+        .witness-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
+        @media (max-width: 750px) { .witness-grid { grid-template-columns: 1fr; } }
+        .w-box {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 4px; padding: 12px; font-size: 0.8rem;
         }
+        .w-box.signed { border-color: var(--green); background: #121c14; }
+        .w-box .status-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; background: #21262d; float: right; }
+        .w-box.signed .status-tag { background: var(--green); color: #fff; }
+        .w-box input { width: 100%; margin-bottom: 6px; padding: 5px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: monospace; font-size: 0.75rem; }
+        .w-box input:disabled { opacity: 0.5; }
+        .w-box button { width: 100%; padding: 5px; border: 1px solid var(--border); background: #21262d; color: var(--text); border-radius: 3px; cursor: pointer; font-size: 0.75rem; }
+        .w-box button:hover { background: #30363d; }
 
-        .container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
+        .progress-track {
+            width: 100%; height: 8px; background: #21262d; border-radius: 4px;
+            margin-top: 15px; overflow: hidden;
         }
+        .progress-track .fill { height: 100%; background: var(--yellow); transition: width 0.3s; border-radius: 4px; }
 
-        @media (max-width: 900px) {
-            .container { grid-template-columns: 1fr; }
-        }
-
-        .proposal-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .proposal-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            font-size: 0.85rem;
-        }
-
-        .participation-badge {
-            background-color: #21262d;
-            border: 1px solid var(--border-color);
-            padding: 3px 8px;
-            border-radius: 12px;
-            color: var(--accent-blue);
-        }
-
-        .clock-ticker {
-            font-weight: bold;
-            color: var(--accent-yellow);
-        }
-
-        .auth-vault {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            height: fit-content;
-        }
-
-        .key-input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-main);
-            box-sizing: border-box;
-            font-family: monospace;
-        }
-
-        .btn-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .btn-pro { background-color: var(--accent-green); }
-        .btn-pro:hover { background-color: #2ea043; }
-        .btn-con { background-color: var(--accent-red); }
-        .btn-con:hover { background-color: #f85149; }
-        
-        .btn-secondary {
-            background-color: #21262d;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            width: 100%;
-            margin-top: 15px;
-            font-size: 0.85rem;
-        }
-        .btn-secondary:hover { background-color: #30363d; }
-
-        .recovery-section {
-            grid-column: 1 / -1;
-            background-color: #1c1212;
-            border: 1px solid #482323;
-            border-radius: 6px;
-            padding: 25px;
-            margin-top: 30px;
-        }
-
-        .witness-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 750px) {
-            .witness-grid { grid-template-columns: 1fr; }
-        }
-
-        .witness-box {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .witness-box.verified {
-            border-color: var(--accent-green);
-            background-color: #121c14;
-        }
-
-        .witness-box h4 {
-            margin: 0 0 10px 0;
-            font-size: 0.95rem;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .verification-status {
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: #21262d;
-        }
-
-        .verified .verification-status {
-            background: var(--accent-green);
-            color: white;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: #21262d;
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background-color: var(--accent-yellow);
-            transition: width 0.4s ease;
-        }
-
-        .hidden { display: none; }
+        .msg { padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 0.85rem; display: none; }
+        .msg.error { display: block; background: #2b1414; border: 1px solid var(--red); color: #ff9494; }
+        .msg.success { display: block; background: #142b14; border: 1px solid var(--green); color: #8bff8b; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1>Cadence Democracy</h1>
-            <p style="color: var(--text-muted); margin: 5px 0 0 0;">Node: Regional Barn Server #04</p>
-        </div>
-        <div class="system-status">
-            <div><span class="status-indicator"></span> Live Node Auditing Active</div>
-            <div style="font-family: monospace; margin-top: 5px;">Build Hash: sha256-8f3a9c...</div>
-        </div>
-    </header>
-
-    <div class="container">
-        <main>
-            <h2>Active Weekly Matters</h2>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Review the issues below. Select a matter to initialize your keys.</p>
-
-            <div class="proposal-card" id="prop-101">
-                <h3>Proposal #101: Re-structure Regional Agriculture Water Pipelines</h3>
-                <p style="margin-top: 10px;">To reroute the main arterial pipeline directly through the community commons, bypass commercial industrial farms, and guarantee free baseline infrastructure access to all local farming plots.</p>
-                
-                <div class="proposal-meta">
-                    <span class="participation-badge">Participation: <strong id="part-rate">0.82%</strong></span>
-                    <span class="clock-ticker" id="clock-display">Elastic Clock: 14h 22m remaining (Daily Mode)</span>
-                </div>
-            </div>
-
-            <div class="proposal-card" style="opacity: 0.6;">
-                <h3>Proposal #100: Set Local Library Weekend Operational Funding</h3>
-                <p style="margin-top: 10px;">Allocate surplus community resources to support staff logistics for extended public facility operating windows on Saturdays and Sundays.</p>
-                <div class="proposal-meta">
-                    <span class="participation-badge" style="color: var(--text-muted);">Participation: 14.3%</span>
-                    <span class="clock-ticker" style="color: var(--text-muted);">Elastic Clock: 5 Days remaining (Extended Mode)</span>
-                </div>
-            </div>
-
-            <div class="recovery-section" id="recoverySection">
-                <h3>⚠️ Lost Keys? Social Recovery Portal</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">6 neighbors must gather around this terminal and each enter one of their keys to rebuild a lost identity.</p>
-
-                <div class="witness-grid" id="witnessGrid">
-                    <div class="witness-box" id="w1">
-                        <h4>Neighbor 1 <span class="verification-status" id="s1">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id1" placeholder="e.g. citizen_node_0001">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key1" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(1)">Sign as Witness</button>
-                    </div>
-                    <div class="witness-box" id="w2">
-                        <h4>Neighbor 2 <span class="verification-status" id="s2">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id2" placeholder="e.g. citizen_node_0002">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key2" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(2)">Sign as Witness</button>
-                    </div>
-                    <div class="witness-box" id="w3">
-                        <h4>Neighbor 3 <span class="verification-status" id="s3">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id3" placeholder="e.g. citizen_node_0003">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key3" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(3)">Sign as Witness</button>
-                    </div>
-                    <div class="witness-box" id="w4">
-                        <h4>Neighbor 4 <span class="verification-status" id="s4">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id4" placeholder="e.g. citizen_node_0004">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key4" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(4)">Sign as Witness</button>
-                    </div>
-                    <div class="witness-box" id="w5">
-                        <h4>Neighbor 5 <span class="verification-status" id="s5">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id5" placeholder="e.g. citizen_node_0005">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key5" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(5)">Sign as Witness</button>
-                    </div>
-                    <div class="witness-box" id="w6">
-                        <h4>Neighbor 6 <span class="verification-status" id="s6">PENDING</span></h4>
-                        <label>User ID</label>
-                        <input type="text" id="id6" placeholder="e.g. citizen_node_0006">
-                        <label style="margin-top: 10px;">One Physical Key</label>
-                        <input type="password" id="key6" placeholder="Enter a single key">
-                        <button class="btn-secondary" onclick="verifyWitness(6)">Sign as Witness</button>
-                    </div>
-                </div>
-
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="recoveryProgress"></div>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;" id="progressText">0 of 6 community vouchers authenticated.</p>
-            </div>
-        </main>
-
-        <aside>
-            <div class="auth-vault">
-                <h3>Voting Vault</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">
-                    Input all 5 physical keys from your offline paper record simultaneously to authenticate your vote.
-                </p>
-
-                <form id="voteForm">
-                    <div class="key-input-group"><label>Key 1</label><input type="password" id="k1" required placeholder="••••••••••••••••"></div>
-                    <div class="key-input-group"><label>Key 2</label><input type="password" id="k2" required placeholder="••••••••••••••••"></div>
-                    <div class="key-input-group"><label>Key 3</label><input type="password" id="k3" required placeholder="••••••••••••••••"></div>
-                    <div class="key-input-group"><label>Key 4</label><input type="password" id="k4" required placeholder="••••••••••••••••"></div>
-                    <div class="key-input-group"><label>Key 5</label><input type="password" id="k5" required placeholder="••••••••••••••••"></div>
-
-                    <div class="btn-panel">
-                        <button type="button" class="btn-pro" onclick="submitVote('PRO')">Vote PRO</button>
-                        <button type="button" class="btn-con" onclick="submitVote('CON')">Vote CON</button>
-                    </div>
-                </form>
-
-                <button class="btn-secondary" onclick="openRecoveryView()">🔑 Lost Your Keys? Social Recovery</button>
-            </div>
-        </aside>
+<header>
+    <div>
+        <h1>🏛️ Cadence Democracy</h1>
+        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--muted);">Node: barn_04_maharashtra</p>
     </div>
+    <div style="text-align: right;">
+        <div><span class="status-dot"></span> <span id="nodeStatus">Live</span></div>
+        <div class="nav-links">
+            <a href="/network-map.html">🗺️ Network</a>
+            <a href="/notifications.html">🔔 Alerts</a>
+        </div>
+    </div>
+</header>
 
-    <script>
-        let verifiedCount = 0;
-        const verifiedWitnesses = new Set();
+<div class="status-bar">
+    <span id="electorateDisplay">👥 Electorate: —</span>
+    <span id="proposalCount">📋 Proposals: —</span>
+</div>
 
-        function submitVote(voteType) {
-            const keys = [];
-            for (let i = 1; i <= 5; i++) {
-                keys.push(document.getElementById('k' + i).value.trim());
-            }
-            if (keys.some(k => !k)) {
-                alert("Error: All 5 physical keys must be entered.");
-                return;
-            }
+<div class="layout">
+    <!-- LEFT: Proposals -->
+    <main>
+        <h2 style="margin-top: 0; font-size: 1.1rem;">Active Matters</h2>
+        <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 16px;">
+            Select a proposal, then cast your vote using your 5 paper keys.
+        </p>
+        <div id="proposalList"><p style="color: var(--muted);">Loading proposals...</p></div>
+    </main>
 
-            fetch('/api/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user_id: 'alpha',
-                    keys: keys,
-                    proposal_id: '101',
-                    vote_type: voteType
-                })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) {
-                    alert('Vote Error: ' + data.error);
-                } else {
-                    document.getElementById('part-rate').innerText = '1.04%';
-                    document.getElementById('part-rate').style.color = '#58a6ff';
-                    const clockTicker = document.getElementById('clock-display');
-                    clockTicker.innerText = 'Elastic Clock Extended: 7 Days remaining (Threshold Triggered!)';
-                    clockTicker.style.color = '#58a6ff';
-                    alert('Vault Action Successful!\nVote Type: ' + voteType + '\nAll 5 keys verified locally. Database entry broadcast to server logs.');
-                    document.getElementById("voteForm").reset();
-                }
-            })
-            .catch(err => alert('Network error: ' + err.message));
+    <!-- RIGHT: Voting vault -->
+    <aside>
+        <div class="vault">
+            <h3>🗳️ Voting Vault</h3>
+            <p class="hint">Enter all 5 physical paper keys to cast your vote.</p>
+
+            <div class="form-group">
+                <label>Your User ID</label>
+                <input type="text" id="voterId" placeholder="e.g. alpha" value="alpha">
+            </div>
+            <div class="form-group">
+                <label>Proposal</label>
+                <select id="propSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Key 1</label>
+                <input type="password" id="k1" placeholder="key1_user_a1b2">
+            </div>
+            <div class="form-group">
+                <label>Key 2</label>
+                <input type="password" id="k2" placeholder="key2_user_c3d4">
+            </div>
+            <div class="form-group">
+                <label>Key 3</label>
+                <input type="password" id="k3" placeholder="key3_user_e5f6">
+            </div>
+            <div class="form-group">
+                <label>Key 4</label>
+                <input type="password" id="k4" placeholder="key4_user_g7h8">
+            </div>
+            <div class="form-group">
+                <label>Key 5</label>
+                <input type="password" id="k5" placeholder="key5_user_i9j0">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-pro" onclick="castVote('PRO')">✅ Vote Yes</button>
+                <button class="btn btn-con" onclick="castVote('CON')">❌ Vote No</button>
+            </div>
+            <div id="voteMsg" class="msg"></div>
+
+            <button class="btn-secondary" onclick="document.getElementById('recoverySection').classList.toggle('visible')">🔑 Lost keys? Social recovery</button>
+
+            <div class="keys-panel" id="demoKeys">
+                <h4>🔓 Demo Users (click to auto-fill)</h4>
+                <p style="font-size:0.75rem;color:var(--muted);margin:0 0 10px 0;">
+                    These are test accounts with known keys. In production, keys are handed out on physical paper and never stored digitally.
+                </p>
+                <div id="userList"></div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- Social Recovery -->
+<div class="recovery-panel" id="recoverySection">
+    <h3>🆘 Social Recovery</h3>
+    <p style="color: var(--muted); font-size: 0.85rem;">
+        6 neighbors must each provide their User ID and one of their paper keys to restore a lost identity.
+    </p>
+    <div class="form-group" style="margin-top: 10px;">
+        <label>Target User ID (the person whose identity is being recovered)</label>
+        <input type="text" id="recoverTarget" placeholder="e.g. alpha">
+    </div>
+    <div class="witness-grid" id="witnessGrid"></div>
+    <div class="progress-track">
+        <div class="fill" id="recoveryProgress" style="width: 0%"></div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--muted);" id="recoveryStatus">0 of 6 witnesses signed</p>
+    <div id="recoveryMsg" class="msg"></div>
+</div>
+
+<script>
+let demoKeys = {};
+let proposals = {};
+let selectedPropId = null;
+
+// --- Load data ---
+async function loadState() {
+    try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        proposals = data.proposals;
+        const elect = data.electorate;
+
+        document.getElementById('electorateDisplay').textContent =
+            `👥 Electorate: ${elect.active} active / ${elect.total} registered`;
+        document.getElementById('proposalCount').textContent =
+            `📋 Proposals: ${Object.keys(proposals).length} active`;
+
+        renderProposals();
+        populatePropSelect();
+    } catch (e) {
+        document.getElementById('proposalList').innerHTML =
+            `<p style="color:var(--red);">Failed to load: ${e.message}</p>`;
+    }
+}
+
+async function loadDemoKeys() {
+    try {
+        const res = await fetch('/api/demo/keys');
+        const data = await res.json();
+        demoKeys = data.keys;
+        renderUserList();
+    } catch (e) { /* demo keys unavailable */ }
+}
+
+// --- Render proposals ---
+function renderProposals() {
+    const container = document.getElementById('proposalList');
+    const ids = Object.keys(proposals).sort((a, b) => a - b);
+    if (ids.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);">No proposals yet.</p>';
+        return;
+    }
+    container.innerHTML = ids.map(id => {
+        const p = proposals[id];
+        const expired = Date.now() > p.closing_at;
+        const total = p.votes_pro + p.votes_con;
+        const proPct = total > 0 ? (p.votes_pro / total * 100).toFixed(0) : 0;
+        const conPct = total > 0 ? (p.votes_con / total * 100).toFixed(0) : 0;
+        const remaining = expired ? 'CLOSED' : timeRemaining(p.closing_at);
+        return `
+            <div class="prop-card ${expired ? 'expired' : ''}" onclick="selectProposal('${id}')" style="cursor:pointer;">
+                <h3>#${id}: ${p.text}</h3>
+                <p>Pro: ${p.votes_pro} · Con: ${p.votes_con} · Total: ${total} votes</p>
+                <div class="tally-bar">
+                    <div class="pro" style="width:${proPct}%"></div>
+                    <div class="con" style="width:${conPct}%"></div>
+                </div>
+                <div class="prop-meta">
+                    <span class="badge">${remaining}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function timeRemaining(ts) {
+    const ms = ts - Date.now();
+    if (ms <= 0) return '⚠️ CLOSED';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return `⏱️ ${h}h ${m}m remaining`;
+}
+
+function selectProposal(id) {
+    selectedPropId = id;
+    document.getElementById('propSelect').value = id;
+}
+
+function populatePropSelect() {
+    const sel = document.getElementById('propSelect');
+    sel.innerHTML = Object.keys(proposals).sort((a, b) => a - b).map(id =>
+        `<option value="${id}">#${id}: ${proposals[id].text.substring(0, 50)}...</option>`
+    ).join('');
+    selectedPropId = sel.value;
+}
+
+// --- Demo users ---
+function renderUserList() {
+    const container = document.getElementById('userList');
+    container.innerHTML = Object.keys(demoKeys).map(user => `
+        <div class="user-row" onclick="fillKeys('${user}')">
+            <strong>${user}</strong>
+            <span class="keys">${demoKeys[user].join(' · ')}</span>
+        </div>
+    `).join('');
+}
+
+function fillKeys(user) {
+    document.getElementById('voterId').value = user;
+    const keys = demoKeys[user];
+    for (let i = 0; i < 5; i++) {
+        document.getElementById('k' + (i + 1)).value = keys[i];
+    }
+    document.getElementById('voteMsg').className = 'msg';
+    document.getElementById('voteMsg').textContent = '';
+    // Highlight selected user
+    document.querySelectorAll('.user-row').forEach(el => el.classList.remove('active'));
+    event.target.closest('.user-row')?.classList.add('active');
+}
+
+// --- Vote ---
+async function castVote(type) {
+    const user_id = document.getElementById('voterId').value.trim();
+    const proposal_id = document.getElementById('propSelect').value;
+    const keys = [];
+    for (let i = 1; i <= 5; i++) {
+        keys.push(document.getElementById('k' + i).value.trim());
+    }
+    if (!user_id || keys.some(k => !k)) {
+        showMsg('voteMsg', 'Fill in User ID and all 5 keys.', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id, keys, proposal_id, vote_type: type })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showMsg('voteMsg', data.error, 'error');
+        } else {
+            showMsg('voteMsg', `✅ Vote recorded as ${type} on proposal #${proposal_id}!`, 'success');
+            // Clear keys after successful vote (they're single-use in real life)
+            for (let i = 1; i <= 5; i++) document.getElementById('k' + i).value = '';
+            loadState();
         }
+    } catch (e) {
+        showMsg('voteMsg', 'Network error: ' + e.message, 'error');
+    }
+}
 
-        function openRecoveryView() {
-            const password = prompt("Enter your backup confirmation password to confirm key loss and freeze your account:");
-            if (password) {
-                document.getElementById('recoverySection').classList.remove('hidden');
-                document.getElementById('recoverySection').scrollIntoView({ behavior: 'smooth' });
-            }
+// --- Social recovery ---
+let witnessCount = 0;
+const signedWitnesses = new Set();
+
+function initRecovery() {
+    const grid = document.getElementById('witnessGrid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 6; i++) {
+        grid.innerHTML += `
+            <div class="w-box" id="wb${i}">
+                <span class="status-tag" id="ws${i}">PENDING</span>
+                <label>User ID</label>
+                <input type="text" id="wi${i}" placeholder="e.g. beta">
+                <label style="margin-top:6px;">One Key</label>
+                <input type="password" id="wk${i}" placeholder="key1_beta_a1b2">
+                <button onclick="signWitness(${i})">Sign</button>
+            </div>
+        `;
+    }
+    witnessCount = 0;
+    signedWitnesses.clear();
+    document.getElementById('recoveryProgress').style.width = '0%';
+    document.getElementById('recoveryStatus').textContent = '0 of 6 witnesses signed';
+}
+
+async function signWitness(i) {
+    if (signedWitnesses.has(i)) return;
+    const userId = document.getElementById('wi' + i).value.trim();
+    const key = document.getElementById('wk' + i).value.trim();
+    if (!userId || !key) {
+        showMsg('recoveryMsg', 'Enter both User ID and a key.', 'error');
+        return;
+    }
+
+    signedWitnesses.add(i);
+    document.getElementById('wb' + i).classList.add('signed');
+    document.getElementById('ws' + i).textContent = 'SIGNED';
+    document.getElementById('wi' + i).disabled = true;
+    document.getElementById('wk' + i).disabled = true;
+    witnessCount++;
+
+    const pct = (witnessCount / 6) * 100;
+    document.getElementById('recoveryProgress').style.width = pct + '%';
+    document.getElementById('recoveryStatus').textContent = `${witnessCount} of 6 witnesses signed`;
+
+    if (witnessCount === 6) {
+        await executeRecovery();
+    }
+}
+
+async function executeRecovery() {
+    const target = document.getElementById('recoverTarget').value.trim();
+    if (!target) {
+        showMsg('recoveryMsg', 'Enter a target User ID to recover.', 'error');
+        return;
+    }
+
+    const witnesses = [];
+    for (let i = 1; i <= 6; i++) {
+        witnesses.push({
+            user_id: document.getElementById('wi' + i).value.trim(),
+            single_key: document.getElementById('wk' + i).value.trim()
+        });
+    }
+
+    try {
+        const res = await fetch('/api/recover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target_user_id: target, witnesses })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showMsg('recoveryMsg', data.error, 'error');
+        } else {
+            showMsg('recoveryMsg',
+                `✅ Identity recovered for "${target}"! New keys issued:\n${data.print_keys.join('\n')}`,
+                'success');
         }
+    } catch (e) {
+        showMsg('recoveryMsg', 'Network error: ' + e.message, 'error');
+    }
+}
 
-        function verifyWitness(boxNumber) {
-            const userId = document.getElementById('id' + boxNumber).value.trim();
-            const keyInput = document.getElementById('key' + boxNumber).value.trim();
-            if (!userId || !keyInput) {
-                alert("Error: Both User ID and one physical password key must be provided.");
-                return;
-            }
-            if (verifiedWitnesses.has(boxNumber)) return;
+function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.className = 'msg ' + type;
+    el.textContent = text;
+    setTimeout(() => { el.className = 'msg'; }, 8000);
+}
 
-            verifiedWitnesses.add(boxNumber);
-            document.getElementById('w' + boxNumber).classList.add('verified');
-            document.getElementById('s' + boxNumber).innerText = 'SIGNED';
-            document.getElementById('id' + boxNumber).disabled = true;
-            document.getElementById('key' + boxNumber).disabled = true;
-            verifiedCount++;
+// --- Init ---
+loadState();
+loadDemoKeys();
+initRecovery();
+// Refresh proposals every 10 seconds
+setInterval(loadState, 10000);
+</script>
 
-            const percentage = (verifiedCount / 6) * 100;
-            document.getElementById('recoveryProgress').style.width = percentage + '%';
-            document.getElementById('progressText').innerText = verifiedCount + ' of 6 community vouchers authenticated.';
-
-            if (verifiedCount === 6) {
-                setTimeout(() => {
-                    alert("COMMUNITY CONSENSUS MATCHED!\n\nThe 6 un-encrypted neighbor keys matched database registration integrity metrics.\n\nYour old keys are officially expunged. Printing new 5-Key multi-part array to local file output...");
-                    location.reload();
-                }, 500);
-            }
-        }
-    </script>
 </body>
 </html>
