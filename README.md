@@ -55,7 +55,7 @@ cadence-democracy/
 
 ```bash
 # Clone and install
-git clone <repo-url> cadence-democracy
+git clone https://github.com/ywemay/cadence-democracy
 cd cadence-democracy
 npm install
 
