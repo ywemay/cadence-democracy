@@ -183,7 +183,7 @@ function parseBody(req, cb) {
 bootstrapDatabase();
 
 const server = http.createServer((req, res) => {
-    const url = req.url;
+    const url = req.url.split('?')[0];
     const method = req.method;
 
     // Static HTML pages
@@ -195,6 +195,8 @@ const server = http.createServer((req, res) => {
         return serveStatic(res, path.join(__dirname, 'notifications.html'), 'text/html');
     if (method === 'GET' && url === '/recovery.html')
         return serveStatic(res, path.join(__dirname, 'recovery.html'), 'text/html');
+    if (method === 'GET' && url === '/proposal.html')
+        return serveStatic(res, path.join(__dirname, 'proposal.html'), 'text/html');
 
     // API: Full state (proposals + electorate info)
     if (method === 'GET' && url === '/api/state') {

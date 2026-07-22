@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal — Cadence Democracy</title>
+    <style>
+        :root {
+            --bg: #0d1117; --card: #161b22; --border: #30363d;
+            --text: #c9d1d9; --muted: #8b949e;
+            --green: #238636; --red: #da3637; --blue: #58a6ff; --yellow: #e3b341;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5;
+        }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; }
+        header .back { font-size: 0.85rem; color: var(--muted); }
+        header .back:hover { color: var(--text); }
+        .nav-links { display: flex; gap: 15px; font-size: 0.85rem; }
+        .nav-links a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .nav-links a:hover { background: var(--card); }
+
+        .container { max-width: 720px; margin: 0 auto; }
+
+        .detail-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 28px;
+        }
+
+        .detail-header { margin-bottom: 20px; }
+        .detail-header h2 { margin: 0 0 6px 0; font-size: 1.2rem; line-height: 1.4; }
+        .detail-header .meta { color: var(--muted); font-size: 0.8rem; }
+        .detail-header .meta span { margin-right: 16px; }
+
+        .detail-section { margin-bottom: 20px; }
+        .detail-section h4 { margin: 0 0 6px 0; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-section p { margin: 0; font-size: 0.95rem; line-height: 1.7; color: var(--text); }
+
+        .detail-tally {
+            display: flex; gap: 16px; margin: 16px 0;
+        }
+        .detail-tally .stat {
+            text-align: center; padding: 14px 16px; border-radius: 4px;
+            background: var(--bg); border: 1px solid var(--border); flex: 1;
+        }
+        .detail-tally .stat .num { font-size: 1.6rem; font-weight: bold; display: block; }
+        .detail-tally .stat .num.pro { color: var(--green); }
+        .detail-tally .stat .num.con { color: var(--red); }
+        .detail-tally .stat .num.total { color: var(--text); }
+        .detail-tally .stat .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+
+        .voters-list { margin-top: 12px; }
+        .voters-list .voter { display: inline-block; margin: 2px 4px 2px 0; }
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; background: #21262d; border: 1px solid var(--border); }
+
+        .vote-form { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px; }
+        .vote-form h3 { margin: 0 0 14px 0; font-size: 1rem; }
+        .vote-form .form-group { margin-bottom: 10px; }
+        .vote-form .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .vote-form .form-group input {
+            width: 100%; padding: 10px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-family: monospace; font-size: 0.9rem;
+        }
+        .vote-form .form-group input:focus { outline: none; border-color: var(--blue); }
+
+        .key-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 500px) { .key-row { grid-template-columns: 1fr; } }
+
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+        .btn { padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; font-size: 1rem; }
+        .btn-pro { background: var(--green); }
+        .btn-pro:hover { background: #2ea043; }
+        .btn-con { background: var(--red); }
+        .btn-con:hover { background: #f85149; }
+
+        .msg { padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 0.85rem; display: none; }
+        .msg.error { display: block; background: #2b1414; border: 1px solid var(--red); color: #ff9494; }
+        .msg.success { display: block; background: #142b14; border: 1px solid var(--green); color: #8bff8b; }
+
+        .keys-panel {
+            margin-top: 24px; background: #111820; border: 1px dashed #30363d;
+            border-radius: 6px; padding: 16px;
+        }
+        .keys-panel h4 { margin: 0 0 10px 0; font-size: 0.85rem; color: var(--yellow); }
+        .user-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 8px; border-bottom: 1px solid #21262d; font-size: 0.8rem;
+            font-family: monospace; cursor: pointer; border-radius: 3px;
+        }
+        .user-row:hover { background: #1c2533; }
+        .user-row .keys { color: var(--muted); font-size: 0.7rem; }
+        .user-row.active { background: #1a2a1a; border-left: 2px solid var(--green); }
+
+        .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+        .not-found { text-align: center; padding: 60px 20px; }
+        .not-found h2 { color: var(--red); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <a href="/" class="back">← Back to proposals</a>
+        <h1 style="margin-top:6px;">🗳️ Proposal Detail</h1>
+    </div>
+    <div class="nav-links">
+        <a href="/">📋 Proposals</a>
+        <a href="/network-map.html">🗺️ Network</a>
+        <a href="/notifications.html">🔔 Alerts</a>
+        <a href="/recovery.html">🔑 Recovery</a>
+    </div>
+</header>
+
+<div class="container" id="content">
+    <div class="loading" id="loading">
+        <p style="font-size:1.2rem;">⏳ Loading proposal...</p>
+    </div>
+</div>
+
+<script>
+let demoKeys = {};
+let proposals = {};
+let currentPropId = null;
+
+const propId = parseInt(new URLSearchParams(window.location.search).get('id'));
+
+async function loadData() {
+    try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        proposals = data.proposals;
+        const elect = data.electorate;
+
+        if (!propId || !proposals[propId]) {
+            document.getElementById('content').innerHTML = `
+                <div class="not-found">
+                    <h2>⚠️ Proposal Not Found</h2>
+                    <p style="color:var(--muted);">Proposal #${propId || '?'} doesn't exist or has been removed.</p>
+                    <a href="/" style="display:inline-block;margin-top:20px;padding:10px 20px;border:1px solid var(--border);border-radius:4px;">← Back to proposals</a>
+                </div>
+            `;
+            return;
+        }
+        currentPropId = propId;
+        renderDetail(proposals[propId]);
+        document.title = `#${propId}: ${proposals[propId].text.substring(0, 50)} — Cadence Democracy`;
+    } catch (e) {
+        document.getElementById('content').innerHTML =
+            `<div class="not-found"><h2>⚠️ Failed to load</h2><p style="color:var(--red);">${e.message}</p></div>`;
+    }
+}
+
+async function loadDemoKeys() {
+    try {
+        const res = await fetch('/api/demo/keys');
+        const data = await res.json();
+        demoKeys = data.keys;
+        renderUserList();
+    } catch (e) {}
+}
+
+function renderDetail(p) {
+    const expired = Date.now() > p.closing_at;
+    const total = p.votes_pro + p.votes_con;
+    const proPct = total > 0 ? (p.votes_pro / total * 100).toFixed(0) : 0;
+    const conPct = total > 0 ? (p.votes_con / total * 100).toFixed(0) : 0;
+    const remaining = expired ? '⚠️ CLOSED' : timeRemaining(p.closing_at);
+
+    const votersHtml = p.voters && p.voters.length > 0
+        ? p.voters.map(v => `<span class="badge voter">${escHtml(v)}</span>`).join(' ')
+        : '<span style="color:var(--muted);font-size:0.85rem;">No votes yet.</span>';
+
+    document.getElementById('content').innerHTML = `
+        <div class="detail-card">
+            <div class="detail-header">
+                <h2>#${p.id}: ${escHtml(p.text)}</h2>
+                <div class="meta">
+                    <span>Proposed by <strong>${escHtml(p.proposer)}</strong></span>
+                    <span>🆔 #${p.id}</span>
+                    <span>${remaining}</span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h4>Description</h4>
+                <p>${escHtml(p.description || '(No description provided)')}</p>
+            </div>
+
+            <div class="detail-tally">
+                <div class="stat">
+                    <span class="num pro" id="detailProCount">${p.votes_pro}</span>
+                    <span class="lbl">👍 YES</span>
+                </div>
+                <div class="stat">
+                    <span class="num con" id="detailConCount">${p.votes_con}</span>
+                    <span class="lbl">👎 NO</span>
+                </div>
+                <div class="stat">
+                    <span class="num total">${total}</span>
+                    <span class="lbl">TOTAL</span>
+                </div>
+            </div>
+
+            <div class="tally-bar">
+                <div class="pro" style="width:${proPct}%"></div>
+                <div class="con" style="width:${conPct}%"></div>
+            </div>
+
+            <div class="detail-section voters-list" style="margin-top:16px;">
+                <h4>Voters</h4>
+                ${votersHtml}
+            </div>
+
+            ${expired ? '' : `
+            <div class="vote-form" id="voteForm">
+                <h3>🗳️ Cast Your Vote</h3>
+                <div class="form-group">
+                    <label>Your User ID</label>
+                    <input type="text" id="voterId" placeholder="e.g. alpha" value="alpha">
+                </div>
+                <div class="key-row">
+                    <div class="form-group">
+                        <label>Key 1</label>
+                        <input type="password" id="k1" placeholder="key1_user_a1b2">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 2</label>
+                        <input type="password" id="k2" placeholder="key2_user_c3d4">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 3</label>
+                        <input type="password" id="k3" placeholder="key3_user_e5f6">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 4</label>
+                        <input type="password" id="k4" placeholder="key4_user_g7h8">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 5</label>
+                        <input type="password" id="k5" placeholder="key5_user_i9j0">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-pro" onclick="castVote('PRO')">👍 Vote Yes</button>
+                    <button class="btn btn-con" onclick="castVote('CON')">👎 Vote No</button>
+                </div>
+                <div id="voteMsg" class="msg"></div>
+            </div>
+            `}
+        </div>
+
+        <div class="keys-panel" id="demoKeys">
+            <h4>🔓 Demo Users (click to auto-fill keys)</h4>
+            <p style="font-size:0.75rem;color:var(--muted);margin:0 0 10px 0;">
+                Test accounts with known keys. Click to fill the voting form.
+            </p>
+            <div id="userList"></div>
+        </div>
+    `;
+
+    // Re-render user list into the new DOM
+    renderUserList();
+}
+
+function renderUserList() {
+    const container = document.getElementById('userList');
+    if (!container) return;
+    container.innerHTML = Object.keys(demoKeys).map(user => `
+        <div class="user-row" onclick="fillKeys('${user}')">
+            <strong>${user}</strong>
+            <span class="keys">${demoKeys[user].join(' · ')}</span>
+        </div>
+    `).join('');
+}
+
+function fillKeys(user) {
+    const keys = demoKeys[user];
+    if (!keys) return;
+    for (let i = 0; i < 5; i++) {
+        const el = document.getElementById('k' + (i + 1));
+        if (el) el.value = keys[i];
+    }
+    const voterId = document.getElementById('voterId');
+    if (voterId) voterId.value = user;
+    document.querySelectorAll('.user-row').forEach(el => el.classList.remove('active'));
+    if (event && event.target) {
+        event.target.closest('.user-row')?.classList.add('active');
+    }
+}
+
+async function castVote(type) {
+    const user_id = document.getElementById('voterId').value.trim();
+    const keys = [1,2,3,4,5].map(i => document.getElementById('k'+i).value.trim());
+    if (!user_id || keys.some(k => !k)) {
+        showMsg('voteMsg', 'Fill in User ID and all 5 keys.', 'error');
+        return;
+    }
+    try {
+        const res = await fetch('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id, keys, proposal_id: currentPropId, vote_type: type })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showMsg('voteMsg', data.error, 'error');
+        } else {
+            showMsg('voteMsg', `✅ Vote recorded as ${type}!`, 'success');
+            [1,2,3,4,5].forEach(i => document.getElementById('k'+i).value = '');
+            // Re-load to update tallies
+            setTimeout(loadData, 1000);
+        }
+    } catch (e) {
+        showMsg('voteMsg', 'Network error: ' + e.message, 'error');
+    }
+}
+
+function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'msg ' + type;
+    el.textContent = text;
+    setTimeout(() => { el.className = 'msg'; }, 8000);
+}
+
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+function timeRemaining(ts) {
+    const ms = ts - Date.now();
+    if (ms <= 0) return '⚠️ CLOSED';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return `⏱️ ${h}h ${m}m remaining`;
+}
+
+loadData();
+loadDemoKeys();
+</script>
+</body>
+</html>
