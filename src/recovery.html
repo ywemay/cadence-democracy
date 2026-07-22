@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Recovery — Cadence Democracy</title>
+    <style>
+        :root {
+            --bg: #0d1117; --card: #161b22; --border: #30363d;
+            --text: #c9d1d9; --muted: #8b949e;
+            --green: #238636; --red: #da3637; --blue: #58a6ff; --yellow: #e3b341;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5;
+        }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 30px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        header h1 { margin: 0; font-size: 1.4rem; }
+        .nav-links { display: flex; gap: 15px; font-size: 0.85rem; }
+        .nav-links a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .nav-links a:hover { background: var(--card); }
+        .nav-links a.active { background: var(--card); border-color: var(--blue); }
+
+        .container {
+            max-width: 720px; margin: 0 auto;
+        }
+
+        .recovery-card {
+            background: #1c1212; border: 1px solid #482323;
+            border-radius: 6px; padding: 30px;
+        }
+        .recovery-card h2 { margin: 0 0 5px 0; color: #ff9494; font-size: 1.2rem; }
+        .recovery-card .subtitle {
+            color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .form-group input {
+            width: 100%; padding: 10px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-family: monospace; font-size: 0.9rem;
+        }
+        .form-group input:focus { outline: none; border-color: var(--yellow); }
+
+        .witness-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        @media (max-width: 640px) { .witness-grid { grid-template-columns: 1fr; } }
+
+        .w-box {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 4px; padding: 14px; font-size: 0.8rem;
+            transition: border-color 0.3s, background 0.3s;
+        }
+        .w-box.signed { border-color: var(--green); background: #121c14; }
+        .w-box .status-tag {
+            font-size: 0.7rem; padding: 2px 8px; border-radius: 3px;
+            background: #21262d; float: right; text-transform: uppercase;
+        }
+        .w-box.signed .status-tag { background: var(--green); color: #fff; }
+        .w-box label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 3px; margin-top: 8px; }
+        .w-box label:first-of-type { margin-top: 0; }
+        .w-box input {
+            width: 100%; padding: 6px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 3px; color: var(--text);
+            font-family: monospace; font-size: 0.75rem;
+        }
+        .w-box input:disabled { opacity: 0.4; }
+        .w-box input:focus { outline: none; border-color: var(--yellow); }
+        .w-box button {
+            width: 100%; padding: 6px; border: 1px solid var(--border);
+            background: #21262d; color: var(--text); border-radius: 3px;
+            cursor: pointer; font-size: 0.75rem; margin-top: 8px;
+        }
+        .w-box button:hover { background: #30363d; }
+
+        .progress-track {
+            width: 100%; height: 10px; background: #21262d; border-radius: 5px;
+            margin-top: 24px; overflow: hidden;
+        }
+        .progress-track .fill {
+            height: 100%; background: var(--yellow);
+            transition: width 0.3s ease; border-radius: 5px;
+        }
+        .progress-status {
+            text-align: center; font-size: 0.85rem; color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .msg { padding: 12px; border-radius: 4px; margin-top: 16px; font-size: 0.85rem; display: none; white-space: pre-wrap; }
+        .msg.error { display: block; background: #2b1414; border: 1px solid var(--red); color: #ff9494; }
+        .msg.success { display: block; background: #142b14; border: 1px solid var(--green); color: #8bff8b; }
+
+        .btn-reset {
+            display: block; width: 100%; margin-top: 16px;
+            padding: 10px; border: 1px solid var(--border);
+            border-radius: 4px; background: #21262d; color: var(--text);
+            cursor: pointer; font-size: 0.85rem;
+        }
+        .btn-reset:hover { background: #30363d; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>🆘 Social Recovery</h1>
+        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--muted);">Node: barn_04_maharashtra</p>
+    </div>
+    <div class="nav-links">
+        <a href="/">🏛️ Dashboard</a>
+        <a href="/network-map.html">🗺️ Network</a>
+        <a href="/notifications.html">🔔 Alerts</a>
+        <a href="/recovery.html" class="active">🔑 Recovery</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="recovery-card">
+        <h2>🆘 Restore a Lost Identity</h2>
+        <p class="subtitle">
+            When someone loses their paper keys, 6 trusted neighbors must gather to vouch for them.
+            Each witness enters their own User ID and one of their paper keys.
+            Once all 6 have signed, the system issues a fresh set of keys — and the old ones are permanently invalidated.
+        </p>
+
+        <div class="form-group">
+            <label>Target User ID (the person whose identity is being recovered)</label>
+            <input type="text" id="recoverTarget" placeholder="e.g. alpha">
+        </div>
+
+        <div class="witness-grid" id="witnessGrid"></div>
+
+        <div class="progress-track">
+            <div class="fill" id="recoveryProgress" style="width: 0%"></div>
+        </div>
+        <p class="progress-status" id="recoveryStatus">0 of 6 witnesses signed</p>
+
+        <div id="recoveryMsg" class="msg"></div>
+
+        <button class="btn-reset" onclick="resetRecovery()">🔄 Start Over</button>
+    </div>
+</div>
+
+<script>
+let witnessCount = 0;
+const signedWitnesses = new Set();
+
+function initRecovery() {
+    const grid = document.getElementById('witnessGrid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 6; i++) {
+        grid.innerHTML += `
+            <div class="w-box" id="wb${i}">
+                <span class="status-tag" id="ws${i}">PENDING</span>
+                <label>User ID</label>
+                <input type="text" id="wi${i}" placeholder="e.g. beta">
+                <label>One Key</label>
+                <input type="password" id="wk${i}" placeholder="key1_beta_a1b2">
+                <button onclick="signWitness(${i})">✍️ Sign as Witness</button>
+            </div>
+        `;
+    }
+    resetProgress();
+}
+
+function resetProgress() {
+    witnessCount = 0;
+    signedWitnesses.clear();
+    document.getElementById('recoveryProgress').style.width = '0%';
+    document.getElementById('recoveryStatus').textContent = '0 of 6 witnesses signed';
+    document.getElementById('recoveryMsg').className = 'msg';
+    document.getElementById('recoveryMsg').textContent = '';
+}
+
+function resetRecovery() {
+    const target = document.getElementById('recoverTarget');
+    target.value = '';
+    initRecovery();
+}
+
+async function signWitness(i) {
+    if (signedWitnesses.has(i)) return;
+
+    const userId = document.getElementById('wi' + i).value.trim();
+    const key = document.getElementById('wk' + i).value.trim();
+    if (!userId || !key) {
+        showMsg('Enter both User ID and a key.', 'error');
+        return;
+    }
+
+    signedWitnesses.add(i);
+    document.getElementById('wb' + i).classList.add('signed');
+    document.getElementById('ws' + i).textContent = 'SIGNED';
+    document.getElementById('wi' + i).disabled = true;
+    document.getElementById('wk' + i).disabled = true;
+    witnessCount++;
+
+    const pct = (witnessCount / 6) * 100;
+    document.getElementById('recoveryProgress').style.width = pct + '%';
+    document.getElementById('recoveryStatus').textContent = `${witnessCount} of 6 witnesses signed`;
+
+    if (witnessCount === 6) {
+        await executeRecovery();
+    }
+}
+
+async function executeRecovery() {
+    const target = document.getElementById('recoverTarget').value.trim();
+    if (!target) {
+        showMsg('Enter a target User ID to recover.', 'error');
+        return;
+    }
+
+    const witnesses = [];
+    for (let i = 1; i <= 6; i++) {
+        witnesses.push({
+            user_id: document.getElementById('wi' + i).value.trim(),
+            single_key: document.getElementById('wk' + i).value.trim()
+        });
+    }
+
+    try {
+        const res = await fetch('/api/recover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target_user_id: target, witnesses })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showMsg(data.error, 'error');
+        } else {
+            showMsg(
+                `✅ Identity recovered for "${target}"!\n\nNew keys (write these down and keep them safe):\n\n${data.print_keys.join('\n')}`,
+                'success'
+            );
+        }
+    } catch (e) {
+        showMsg('Network error: ' + e.message, 'error');
+    }
+}
+
+function showMsg(text, type) {
+    const el = document.getElementById('recoveryMsg');
+    el.className = 'msg ' + type;
+    el.textContent = text;
+    setTimeout(() => { el.className = 'msg'; }, 12000);
+}
+
+// --- Init ---
+initRecovery();
+</script>
+
+</body>
+</html>

@@ -138,6 +138,8 @@ const server = http.createServer((req, res) => {
         return serveStatic(res, path.join(__dirname, 'network-map.html'), 'text/html');
     if (method === 'GET' && url === '/notifications.html')
         return serveStatic(res, path.join(__dirname, 'notifications.html'), 'text/html');
+    if (method === 'GET' && url === '/recovery.html')
+        return serveStatic(res, path.join(__dirname, 'recovery.html'), 'text/html');
 
     // API: Full state (proposals + electorate info)
     if (method === 'GET' && url === '/api/state') {

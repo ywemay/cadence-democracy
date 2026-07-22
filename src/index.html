@@ -31,6 +31,7 @@
         .nav-links { display: flex; gap: 15px; font-size: 0.85rem; }
         .nav-links a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
         .nav-links a:hover { background: var(--card); }
+        .nav-links a.active { background: var(--card); border-color: var(--blue); }
 
         .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
         @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
@@ -100,34 +101,6 @@
             display: flex; gap: 20px; font-size: 0.8rem; color: var(--muted);
             margin-bottom: 20px; flex-wrap: wrap;
         }
-
-        /* Recovery section */
-        .recovery-panel {
-            margin-top: 30px; background: #1c1212; border: 1px solid #482323;
-            border-radius: 6px; padding: 20px; display: none;
-        }
-        .recovery-panel.visible { display: block; }
-        .recovery-panel h3 { margin: 0 0 5px 0; color: #ff9494; }
-        .witness-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
-        @media (max-width: 750px) { .witness-grid { grid-template-columns: 1fr; } }
-        .w-box {
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 4px; padding: 12px; font-size: 0.8rem;
-        }
-        .w-box.signed { border-color: var(--green); background: #121c14; }
-        .w-box .status-tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; background: #21262d; float: right; }
-        .w-box.signed .status-tag { background: var(--green); color: #fff; }
-        .w-box input { width: 100%; margin-bottom: 6px; padding: 5px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; color: var(--text); font-family: monospace; font-size: 0.75rem; }
-        .w-box input:disabled { opacity: 0.5; }
-        .w-box button { width: 100%; padding: 5px; border: 1px solid var(--border); background: #21262d; color: var(--text); border-radius: 3px; cursor: pointer; font-size: 0.75rem; }
-        .w-box button:hover { background: #30363d; }
-
-        .progress-track {
-            width: 100%; height: 8px; background: #21262d; border-radius: 4px;
-            margin-top: 15px; overflow: hidden;
-        }
-        .progress-track .fill { height: 100%; background: var(--yellow); transition: width 0.3s; border-radius: 4px; }
-
         .msg { padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 0.85rem; display: none; }
         .msg.error { display: block; background: #2b1414; border: 1px solid var(--red); color: #ff9494; }
         .msg.success { display: block; background: #142b14; border: 1px solid var(--green); color: #8bff8b; }
@@ -145,7 +118,8 @@
         <div class="nav-links">
             <a href="/network-map.html">🗺️ Network</a>
             <a href="/notifications.html">🔔 Alerts</a>
-        </div>
+            <a href="/recovery.html">🔑 Recovery</a>
+            </div>
     </div>
 </header>
 
@@ -205,8 +179,6 @@
             </div>
             <div id="voteMsg" class="msg"></div>
 
-            <button class="btn-secondary" onclick="document.getElementById('recoverySection').classList.toggle('visible')">🔑 Lost keys? Social recovery</button>
-
             <div class="keys-panel" id="demoKeys">
                 <h4>🔓 Demo Users (click to auto-fill)</h4>
                 <p style="font-size:0.75rem;color:var(--muted);margin:0 0 10px 0;">
@@ -216,24 +188,6 @@
             </div>
         </div>
     </aside>
-</div>
-
-<!-- Social Recovery -->
-<div class="recovery-panel" id="recoverySection">
-    <h3>🆘 Social Recovery</h3>
-    <p style="color: var(--muted); font-size: 0.85rem;">
-        6 neighbors must each provide their User ID and one of their paper keys to restore a lost identity.
-    </p>
-    <div class="form-group" style="margin-top: 10px;">
-        <label>Target User ID (the person whose identity is being recovered)</label>
-        <input type="text" id="recoverTarget" placeholder="e.g. alpha">
-    </div>
-    <div class="witness-grid" id="witnessGrid"></div>
-    <div class="progress-track">
-        <div class="fill" id="recoveryProgress" style="width: 0%"></div>
-    </div>
-    <p style="font-size:0.8rem;color:var(--muted);" id="recoveryStatus">0 of 6 witnesses signed</p>
-    <div id="recoveryMsg" class="msg"></div>
 </div>
 
 <script>
@@ -380,90 +334,6 @@ async function castVote(type) {
     }
 }
 
-// --- Social recovery ---
-let witnessCount = 0;
-const signedWitnesses = new Set();
-
-function initRecovery() {
-    const grid = document.getElementById('witnessGrid');
-    grid.innerHTML = '';
-    for (let i = 1; i <= 6; i++) {
-        grid.innerHTML += `
-            <div class="w-box" id="wb${i}">
-                <span class="status-tag" id="ws${i}">PENDING</span>
-                <label>User ID</label>
-                <input type="text" id="wi${i}" placeholder="e.g. beta">
-                <label style="margin-top:6px;">One Key</label>
-                <input type="password" id="wk${i}" placeholder="key1_beta_a1b2">
-                <button onclick="signWitness(${i})">Sign</button>
-            </div>
-        `;
-    }
-    witnessCount = 0;
-    signedWitnesses.clear();
-    document.getElementById('recoveryProgress').style.width = '0%';
-    document.getElementById('recoveryStatus').textContent = '0 of 6 witnesses signed';
-}
-
-async function signWitness(i) {
-    if (signedWitnesses.has(i)) return;
-    const userId = document.getElementById('wi' + i).value.trim();
-    const key = document.getElementById('wk' + i).value.trim();
-    if (!userId || !key) {
-        showMsg('recoveryMsg', 'Enter both User ID and a key.', 'error');
-        return;
-    }
-
-    signedWitnesses.add(i);
-    document.getElementById('wb' + i).classList.add('signed');
-    document.getElementById('ws' + i).textContent = 'SIGNED';
-    document.getElementById('wi' + i).disabled = true;
-    document.getElementById('wk' + i).disabled = true;
-    witnessCount++;
-
-    const pct = (witnessCount / 6) * 100;
-    document.getElementById('recoveryProgress').style.width = pct + '%';
-    document.getElementById('recoveryStatus').textContent = `${witnessCount} of 6 witnesses signed`;
-
-    if (witnessCount === 6) {
-        await executeRecovery();
-    }
-}
-
-async function executeRecovery() {
-    const target = document.getElementById('recoverTarget').value.trim();
-    if (!target) {
-        showMsg('recoveryMsg', 'Enter a target User ID to recover.', 'error');
-        return;
-    }
-
-    const witnesses = [];
-    for (let i = 1; i <= 6; i++) {
-        witnesses.push({
-            user_id: document.getElementById('wi' + i).value.trim(),
-            single_key: document.getElementById('wk' + i).value.trim()
-        });
-    }
-
-    try {
-        const res = await fetch('/api/recover', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target_user_id: target, witnesses })
-        });
-        const data = await res.json();
-        if (data.error) {
-            showMsg('recoveryMsg', data.error, 'error');
-        } else {
-            showMsg('recoveryMsg',
-                `✅ Identity recovered for "${target}"! New keys issued:\n${data.print_keys.join('\n')}`,
-                'success');
-        }
-    } catch (e) {
-        showMsg('recoveryMsg', 'Network error: ' + e.message, 'error');
-    }
-}
-
 function showMsg(id, text, type) {
     const el = document.getElementById(id);
     el.className = 'msg ' + type;
@@ -474,7 +344,6 @@ function showMsg(id, text, type) {
 // --- Init ---
 loadState();
 loadDemoKeys();
-initRecovery();
 // Refresh proposals every 10 seconds
 setInterval(loadState, 10000);
 </script>
