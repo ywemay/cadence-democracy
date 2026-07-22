@@ -3,6 +3,7 @@
     "node_id": "barn_04_maharashtra",
     "region_code": "IN-MH-04",
     "physical_location": "Bhiwandi District Barn, Maharashtra",
+    "coordinates": { "lat": 19.2963, "lng": 73.0550 },
     "software_version": "1.0.0-BETA",
     "runtime_build_hash": "sha256-8f3a9c9f2b3e4d5c6b7a8f9e0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
     "current_cycle_id": "2026-H2",
@@ -16,6 +17,7 @@
       "peer_id": "barn_01_gujarat",
       "status": "ONLINE",
       "last_sync_timestamp": "2026-07-21T16:02:11Z",
+      "coordinates": { "lat": 22.5571, "lng": 72.9544 },
       "connection_profiles": {
         "primary": {
           "type": "wireguard_tunnel",
@@ -39,6 +41,7 @@
       "peer_id": "barn_02_madhya_pradesh",
       "status": "ONLINE",
       "last_sync_timestamp": "2026-07-21T16:04:45Z",
+      "coordinates": { "lat": 22.7196, "lng": 75.8577 },
       "connection_profiles": {
         "primary": {
           "type": "wireguard_tunnel",
@@ -62,6 +65,7 @@
       "peer_id": "barn_03_goa_captured_shell",
       "status": "QUARANTINED",
       "last_sync_timestamp": "2026-07-20T03:14:22Z",
+      "coordinates": { "lat": 15.4909, "lng": 73.8278 },
       "quarantine_reason": "CRITICAL_INTEGRITY_MISMATCH: System log streams failed automated 51% validation audits. Node flagged as occupied/corrupted by centralized forces.",
       "connection_profiles": {
         "primary": {

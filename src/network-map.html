@@ -3,256 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadence Democracy Network Map</title>
+    <title>Network Map — Cadence Democracy</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --status-online: #3fb950;
-            --status-offline: #8b949e;
-            --status-alert: #da3637;
-            --accent-blue: #58a6ff;
+            --bg: #0d1117; --card: #161b22; --border: #30363d;
+            --text: #c9d1d9; --muted: #8b949e;
+            --green: #238636; --red: #da3637; --blue: #58a6ff; --yellow: #e3b341;
         }
-
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
+            background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5;
         }
+        a { color: var(--blue); text-decoration: none; }
+        a:hover { text-decoration: underline; }
 
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px;
+            flex-wrap: wrap; gap: 10px;
         }
+        header h1 { margin: 0; font-size: 1.4rem; }
+        .nav-links { display: flex; gap: 15px; font-size: 0.85rem; }
+        .nav-links a { padding: 4px 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .nav-links a:hover { background: var(--card); }
+        .nav-links a.active { background: var(--card); border-color: var(--blue); }
 
-        h1, h2, h3, h4 { margin: 0; }
+        .layout { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+        @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-        }
-
-        @media (max-width: 1000px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-
-        .topology-view {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-
-        canvas {
-            background-color: #090c10;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
-        }
-
-        .peer-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        /* Peer list */
+        .peer-list { display: flex; flex-direction: column; gap: 12px; }
+        .peer-list h2 { margin: 0 0 4px 0; font-size: 1rem; }
 
         .peer-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            transition: transform 0.2s ease;
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 16px;
         }
-
-        .peer-card:hover {
-            transform: scale(1.01);
-        }
-
-        .peer-card.quarantined {
-            border-color: #482323;
-            background-color: #1c1212;
-        }
-
+        .peer-card.local { border-color: var(--blue); }
+        .peer-card.quarantined { border-color: #482323; background: #1c1212; }
         .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
         }
-
+        .card-header h3 { margin: 0; font-size: 0.9rem; }
         .badge {
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 3px 8px;
-            border-radius: 12px;
-            text-transform: uppercase;
+            font-size: 0.7rem; font-weight: bold; padding: 3px 8px;
+            border-radius: 10px; text-transform: uppercase;
+        }
+        .badge-online { background: rgba(35,134,54,0.15); color: var(--green); border: 1px solid var(--green); }
+        .badge-quarantined { background: rgba(218,54,55,0.15); color: var(--red); border: 1px solid var(--red); }
+        .badge-local { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid var(--blue); }
+        .peer-card p { margin: 4px 0; font-size: 0.8rem; color: var(--muted); }
+        .peer-card .coords { font-family: monospace; font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+        .peer-card .voters { font-size: 0.8rem; margin-top: 6px; }
+        .quarantine-alert {
+            background: #2b1414; border: 1px solid var(--red);
+            color: #ff9494; padding: 8px; border-radius: 4px;
+            font-size: 0.75rem; margin-top: 8px;
         }
 
-        .badge-online { background-color: rgba(63, 185, 80, 0.15); color: var(--status-online); border: 1px solid var(--status-online); }
-        .badge-quarantined { background-color: rgba(218, 54, 55, 0.15); color: var(--status-alert); border: 1px solid var(--status-alert); }
+        /* Map */
+        .map-container { border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+        #map { height: 520px; width: 100%; background: #090c10; }
 
-        .metric-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 10px;
-        }
+        /* Leaflet dark overrides */
+        .leaflet-container { font-family: inherit; }
+        .leaflet-popup-content-wrapper { background: var(--card); color: var(--text); border-radius: 6px; }
+        .leaflet-popup-content { margin: 12px 16px; }
+        .leaflet-popup-content h3 { margin: 0 0 4px 0; font-size: 0.9rem; }
+        .leaflet-popup-content p { margin: 2px 0; font-size: 0.8rem; color: var(--muted); }
+        .leaflet-popup-tip { background: var(--card); }
+        .leaflet-control-zoom a { background: var(--card); color: var(--text); border-color: var(--border); }
+        .leaflet-control-zoom a:hover { background: #1c2533; }
 
-        .quarantine-alert-box {
-            background-color: #2b1414;
-            border: 1px solid var(--status-alert);
-            color: #ff9494;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            margin-top: 10px;
-            font-family: monospace;
+        .status-bar {
+            display: flex; gap: 20px; font-size: 0.8rem; color: var(--muted);
+            margin-bottom: 20px; flex-wrap: wrap;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1>Cadence Grid Topology Panel</h1>
-            <p style="color: var(--text-muted); margin: 5px 0 0 0;">Observability Map: Federated Barn Clusters</p>
-        </div>
-        <div style="text-align: right; font-family: monospace; font-size: 0.9rem; color: var(--text-muted);">
-            Network Consensus Rate: <span style="color: var(--status-online); font-weight: bold;">100% Verified</span>
-        </div>
-    </header>
-
-    <div class="dashboard-grid">
-        <section class="peer-list">
-            <h2>Active Nodes List</h2>
-
-            <div class="peer-card" style="border-color: var(--accent-blue);">
-                <div class="card-header">
-                    <h3>barn_04_maharashtra</h3>
-                    <span class="badge" style="background-color: rgba(88, 166, 255, 0.15); color: var(--accent-blue); border: 1px solid var(--accent-blue);">Local Core</span>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Bhiwandi District Barn, Maharashtra</p>
-                <div class="metric-grid">
-                    <div>Tunnel IP: 10.0.0.4</div>
-                    <div>Radio Mesh IP: 10.1.0.4</div>
-                </div>
-            </div>
-
-            <div class="peer-card">
-                <div class="card-header">
-                    <h3>barn_01_gujarat</h3>
-                    <span class="badge badge-online">Online</span>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Anand District Barn, Gujarat</p>
-                <div class="metric-grid">
-                    <div>Sync: 2026-07-21 16:02</div>
-                    <div>Voter Pool: 1,420 Humans</div>
-                    <div>Gossip Count: 89,432</div>
-                    <div>Priority Weight: 10</div>
-                </div>
-            </div>
-
-            <div class="peer-card">
-                <div class="card-header">
-                    <h3>barn_02_madhya_pradesh</h3>
-                    <span class="badge badge-online">Online</span>
-                </div>
-                <p style="font-size: 0.85rem; color: var(--text-muted);">Location: Indore District Barn, MP</p>
-                <div class="metric-grid">
-                    <div>Sync: 2026-07-21 16:04</div>
-                    <div>Voter Pool: 980 Humans</div>
-                    <div>Gossip Count: 41,203</div>
-                    <div>Priority Weight: 10</div>
-                </div>
-            </div>
-
-            <div class="peer-card quarantined">
-                <div class="card-header">
-                    <h3 style="color: #ff9494;">barn_03_goa_captured_shell</h3>
-                    <span class="badge badge-quarantined">Quarantined</span>
-                </div>
-                <p style="font-size: 0.85rem; color: #ff9494;">Location: Panaji Node (Occupied/Corrupt)</p>
-                <div class="quarantine-alert-box">
-                    CRITICAL_INTEGRITY_MISMATCH: System log streams failed automated 51% validation audits. Node flagged as occupied/corrupted by centralized forces. Traffic paths severed.
-                </div>
-            </div>
-        </section>
-
-        <section class="topology-view">
-            <h2 style="margin-bottom: 20px; align-self: flex-start;">Live Routing Visualization</h2>
-            <canvas id="topologyCanvas" width="600" height="400"></canvas>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 15px; text-align: center;">
-                Interactive Graphic Engine: Green links simulate active WireGuard Tunnels. Red nodes represent isolated/forked systems operating outside network consensus rules.
-            </p>
-        </section>
+<header>
+    <div>
+        <h1>🗺️ Network Map</h1>
+        <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--muted);">Cadence Barn Federation — Live Topology</p>
     </div>
+    <div class="nav-links">
+        <a href="/">🏛️ Dashboard</a>
+        <a href="/network-map.html" class="active">🗺️ Network</a>
+        <a href="/notifications.html">🔔 Alerts</a>
+        <a href="/recovery.html">🔑 Recovery</a>
+    </div>
+</header>
 
-    <script>
-        const canvas = document.getElementById('topologyCanvas');
-        const ctx = canvas.getContext('2d');
+<div class="status-bar" id="statusBar">
+    <span>⏳ Loading topology...</span>
+</div>
 
-        const nodes = [
-            { id: 'barn_04', label: 'Local Node (04)', x: 300, y: 280, status: 'local' },
-            { id: 'barn_01', label: 'Barn 01 (GJ)', x: 150, y: 120, status: 'online' },
-            { id: 'barn_02', label: 'Barn 02 (MP)', x: 450, y: 120, status: 'online' },
-            { id: 'barn_03', label: 'Barn 03 (GA)', x: 300, y: 40, status: 'quarantined' }
-        ];
+<div class="layout">
+    <section class="peer-list" id="peerList">
+        <h2>Barn Nodes</h2>
+        <p style="color:var(--muted);font-size:0.85rem;" id="peerCount"></p>
+        <div id="peerCards"><p style="color:var(--muted);">Loading...</p></div>
+    </section>
 
-        function drawTopologyNetwork() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    <section class="map-container">
+        <div id="map"></div>
+    </section>
+</div>
 
-            ctx.lineWidth = 2;
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let map;
+let markers = [];
+let topologyData = null;
 
-            ctx.strokeStyle = '#238636';
-            ctx.beginPath(); ctx.moveTo(300, 280); ctx.lineTo(150, 120); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(300, 280); ctx.lineTo(450, 120); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(150, 120); ctx.lineTo(450, 120); ctx.stroke();
+function initMap(center, nodes) {
+    map = L.map('map', {
+        center: center,
+        zoom: 7,
+        zoomControl: true,
+        attributionControl: false
+    });
 
-            ctx.strokeStyle = '#da3637';
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath(); ctx.moveTo(450, 120); ctx.lineTo(300, 40); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(150, 120); ctx.lineTo(300, 40); ctx.stroke();
-            ctx.setLineDash([]);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+    }).addTo(map);
+}
 
-            nodes.forEach(node => {
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, 16, 0, 2 * Math.PI);
-                if (node.status === 'local') ctx.fillStyle = '#58a6ff';
-                else if (node.status === 'online') ctx.fillStyle = '#3fb950';
-                else if (node.status === 'quarantined') ctx.fillStyle = '#da3637';
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                ctx.fillStyle = '#c9d1d9';
-                ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(node.label, node.x, node.y + 32);
-            });
+function buildPopup(node, isLocal) {
+    const status = isLocal ? 'LOCAL' : node.status;
+    const coordStr = node.coordinates
+        ? `${node.coordinates.lat.toFixed(4)}, ${node.coordinates.lng.toFixed(4)}`
+        : '—';
+    const voters = node.ledger_metrics
+        ? `<p>👥 ${node.ledger_metrics.verified_voter_pool.toLocaleString()} verified voters</p>`
+        : '';
+    const sync = node.last_sync_timestamp
+        ? `<p>🔄 ${node.last_sync_timestamp}</p>`
+        : '';
+    return `
+        <h3>${node.node_id}</h3>
+        <p>📍 ${node.physical_location || '—'}</p>
+        <p>📌 ${coordStr}</p>
+        ${voters}
+        ${sync}
+        <p><strong>${status}</strong></p>
+    `;
+}
+
+function getMarkerColor(status, isLocal) {
+    if (isLocal) return '#58a6ff';
+    if (status === 'ONLINE') return '#3fb950';
+    if (status === 'QUARANTINED') return '#da3637';
+    return '#8b949e';
+}
+
+function createColoredIcon(color) {
+    return L.divIcon({
+        html: `<svg width="28" height="40" viewBox="0 0 28 40"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 26 14 26s14-15.5 14-26C28 6.3 21.7 0 14 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/><circle cx="14" cy="14" r="5" fill="#fff"/></svg>`,
+        className: '',
+        iconSize: [28, 40],
+        iconAnchor: [14, 40],
+        popupAnchor: [0, -36]
+    });
+}
+
+function plotNodes(data) {
+    if (!map) return;
+
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    const bounds = [];
+
+    // Plot local node
+    const local = data.topology.local_node;
+    if (local.coordinates) {
+        const color = getMarkerColor(null, true);
+        const m = L.marker([local.coordinates.lat, local.coordinates.lng], {
+            icon: createColoredIcon(color)
+        }).addTo(map);
+        m.bindPopup(buildPopup(local, true));
+        markers.push(m);
+        bounds.push([local.coordinates.lat, local.coordinates.lng]);
+    }
+
+    // Plot peers
+    (data.topology.network_peers || []).forEach(peer => {
+        if (!peer.coordinates) return;
+        const color = getMarkerColor(peer.status, false);
+        const m = L.marker([peer.coordinates.lat, peer.coordinates.lng], {
+            icon: createColoredIcon(color)
+        }).addTo(map);
+        m.bindPopup(buildPopup(peer, false));
+        markers.push(m);
+        bounds.push([peer.coordinates.lat, peer.coordinates.lng]);
+    });
+
+    // Fit bounds so all markers are visible
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
+    }
+}
+
+function renderPeerCards(data) {
+    const container = document.getElementById('peerCards');
+    const local = data.topology.local_node;
+    const peers = data.topology.network_peers || [];
+    const activeCount = peers.filter(p => p.status === 'ONLINE').length;
+
+    document.getElementById('peerCount').textContent =
+        `${peers.length} peers · ${activeCount} online`;
+
+    let html = '';
+
+    // Local node card
+    const lc = local.coordinates;
+    html += `
+        <div class="peer-card local">
+            <div class="card-header">
+                <h3>${local.node_id}</h3>
+                <span class="badge badge-local">Local Core</span>
+            </div>
+            <p>📍 ${local.physical_location || '—'}</p>
+            <div class="coords">${lc ? `${lc.lat}, ${lc.lng}` : '—'}</div>
+        </div>
+    `;
+
+    // Peer cards
+    peers.forEach(peer => {
+        const c = peer.coordinates;
+        const sync = peer.last_sync_timestamp
+            ? `<p>🔄 ${new Date(peer.last_sync_timestamp).toLocaleString()}</p>` : '';
+        const voters = peer.ledger_metrics
+            ? `<div class="voters">👥 ${peer.ledger_metrics.verified_voter_pool.toLocaleString()} voters</div>` : '';
+        const quarantine = peer.status === 'QUARANTINED' && peer.quarantine_reason
+            ? `<div class="quarantine-alert">${peer.quarantine_reason}</div>` : '';
+
+        html += `
+            <div class="peer-card ${peer.status === 'QUARANTINED' ? 'quarantined' : ''}">
+                <div class="card-header">
+                    <h3>${peer.peer_id}</h3>
+                    <span class="badge ${peer.status === 'ONLINE' ? 'badge-online' : 'badge-quarantined'}">${peer.status}</span>
+                </div>
+                <p>📍 ${peer.physical_location || '—'}</p>
+                <div class="coords">${c ? `${c.lat}, ${c.lng}` : '—'}</div>
+                ${sync}
+                ${voters}
+                ${quarantine}
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+async function loadTopology() {
+    const statusBar = document.getElementById('statusBar');
+    try {
+        const res = await fetch('/api/network/topology');
+        if (!res.ok) {
+            statusBar.innerHTML = '<span style="color:var(--red);">⚠️ Network topology unavailable</span>';
+            return;
         }
+        const data = await res.json();
+        topologyData = data;
 
-        drawTopologyNetwork();
-        window.addEventListener('resize', drawTopologyNetwork);
-    </script>
+        statusBar.innerHTML = `
+            <span>🟢 Network: <strong>${data.health}</strong> healthy</span>
+            <span>📡 ${data.metrics.active} active · ${data.metrics.quarantined} quarantined</span>
+            <span>🕐 ${new Date(data.timestamp).toLocaleString()}</span>
+        `;
+
+        renderPeerCards(data);
+
+        // Find center — average of all coordinates
+        const allCoords = [];
+        const local = data.topology.local_node;
+        if (local.coordinates) allCoords.push(local.coordinates);
+        (data.topology.network_peers || []).forEach(p => {
+            if (p.coordinates) allCoords.push(p.coordinates);
+        });
+
+        if (allCoords.length > 0) {
+            const avgLat = allCoords.reduce((s, c) => s + c.lat, 0) / allCoords.length;
+            const avgLng = allCoords.reduce((s, c) => s + c.lng, 0) / allCoords.length;
+            initMap([avgLat, avgLng], allCoords);
+        } else {
+            initMap([20, 77], []); // center of India fallback
+        }
+        plotNodes(data);
+
+    } catch (e) {
+        statusBar.innerHTML = `<span style="color:var(--red);">⚠️ Failed to load: ${e.message}</span>`;
+    }
+}
+
+loadTopology();
+</script>
 </body>
 </html>
