@@ -37,48 +37,91 @@
         @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
 
         /* Proposals */
+        .search-bar {
+            display: flex; gap: 10px; margin-bottom: 16px;
+        }
+        .search-bar input {
+            flex: 1; padding: 10px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-size: 0.85rem;
+        }
+        .search-bar input:focus { outline: none; border-color: var(--blue); }
+        .search-bar .count { color: var(--muted); font-size: 0.8rem; padding: 10px 0; white-space: nowrap; }
+
         .prop-card {
             background: var(--card); border: 1px solid var(--border);
-            border-radius: 6px; padding: 20px; margin-bottom: 16px;
+            border-radius: 6px; padding: 20px; margin-bottom: 12px;
+            cursor: pointer; transition: border-color 0.15s, background 0.15s;
         }
-        .prop-card.expired { opacity: 0.5; border-color: var(--red); }
-        .prop-card h3 { margin: 0 0 8px 0; font-size: 1rem; }
-        .prop-card p { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px 0; }
-        .prop-meta { display: flex; justify-content: space-between; font-size: 0.8rem; flex-wrap: wrap; gap: 8px; }
+        .prop-card:hover { border-color: var(--muted); }
+        .prop-card.selected { border-color: var(--blue); background: #161e2e; }
+        .prop-card.expired { opacity: 0.5; }
+        .prop-card h3 { margin: 0 0 6px 0; font-size: 1rem; }
+        .prop-card .proposer { color: var(--muted); font-size: 0.8rem; margin: 0 0 8px 0; }
+        .prop-card p { color: var(--muted); font-size: 0.85rem; margin: 0 0 10px 0; }
+        .prop-meta { display: flex; justify-content: space-between; font-size: 0.8rem; flex-wrap: wrap; gap: 6px; }
         .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; background: #21262d; border: 1px solid var(--border); }
         .badge-pro { color: var(--green); border-color: var(--green); }
         .badge-con { color: var(--red); border-color: var(--red); }
         .tally-bar {
-            display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+            display: flex; height: 5px; border-radius: 3px; overflow: hidden;
             background: #21262d; margin-top: 10px;
         }
         .tally-bar .pro { background: var(--green); transition: width 0.3s; }
         .tally-bar .con { background: var(--red); transition: width 0.3s; }
 
-        /* Voting vault */
-        .vault {
+        /* Right panel */
+        .detail-panel {
             background: var(--card); border: 1px solid var(--border);
-            border-radius: 6px; padding: 20px; height: fit-content;
+            border-radius: 6px; padding: 24px; height: fit-content;
         }
-        .vault h3 { margin: 0 0 5px 0; }
-        .vault .hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 15px; }
+        .detail-panel .placeholder {
+            text-align: center; padding: 40px 20px; color: var(--muted);
+        }
+        .detail-panel .placeholder h3 { margin: 0 0 10px 0; font-size: 1.1rem; color: var(--text); }
 
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
-        .form-group input, .form-group select {
+        .detail-header { margin-bottom: 20px; }
+        .detail-header h2 { margin: 0 0 4px 0; font-size: 1.15rem; line-height: 1.4; }
+        .detail-header .meta { color: var(--muted); font-size: 0.8rem; }
+        .detail-header .meta span { margin-right: 16px; }
+
+        .detail-section { margin-bottom: 16px; }
+        .detail-section h4 { margin: 0 0 6px 0; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-section p { margin: 0; font-size: 0.9rem; line-height: 1.6; color: var(--text); }
+
+        .detail-tally {
+            display: flex; gap: 20px; margin: 16px 0;
+        }
+        .detail-tally .stat {
+            text-align: center; padding: 12px 20px; border-radius: 4px;
+            background: var(--bg); border: 1px solid var(--border); flex: 1;
+        }
+        .detail-tally .stat .num { font-size: 1.4rem; font-weight: bold; display: block; }
+        .detail-tally .stat .num.pro { color: var(--green); }
+        .detail-tally .stat .num.con { color: var(--red); }
+        .detail-tally .stat .num.total { color: var(--text); }
+        .detail-tally .stat .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+
+        .voters-list { margin-top: 12px; }
+        .voters-list .voter { display: inline-block; margin: 2px 4px 2px 0; font-size: 0.8rem; }
+
+        /* Voting form */
+        .vote-form { border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; }
+        .vote-form .form-group { margin-bottom: 10px; }
+        .vote-form .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .vote-form .form-group input {
             width: 100%; padding: 8px; background: var(--bg);
             border: 1px solid var(--border); border-radius: 4px; color: var(--text);
             font-family: monospace; font-size: 0.85rem;
         }
-        .form-group select { cursor: pointer; }
-
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .vote-form .form-group input:focus { outline: none; border-color: var(--blue); }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
         .btn { padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; font-size: 0.9rem; }
         .btn-pro { background: var(--green); }
         .btn-pro:hover { background: #2ea043; }
         .btn-con { background: var(--red); }
         .btn-con:hover { background: #f85149; }
-        .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); width: 100%; margin-top: 10px; font-size: 0.8rem; }
+        .btn-secondary { background: #21262d; border: 1px solid var(--border); color: var(--text); width: 100%; margin-top: 10px; font-size: 0.8rem; cursor: pointer; }
         .btn-secondary:hover { background: #30363d; }
 
         /* Demo keys panel */
@@ -101,9 +144,41 @@
             display: flex; gap: 20px; font-size: 0.8rem; color: var(--muted);
             margin-bottom: 20px; flex-wrap: wrap;
         }
+
         .msg { padding: 10px; border-radius: 4px; margin-top: 10px; font-size: 0.85rem; display: none; }
         .msg.error { display: block; background: #2b1414; border: 1px solid var(--red); color: #ff9494; }
         .msg.success { display: block; background: #142b14; border: 1px solid var(--green); color: #8bff8b; }
+
+        /* New proposal form */
+        .new-prop-toggle {
+            width: 100%; padding: 10px; border: 1px dashed var(--border);
+            background: transparent; color: var(--muted); border-radius: 4px;
+            cursor: pointer; font-size: 0.85rem; margin-bottom: 16px;
+        }
+        .new-prop-toggle:hover { border-color: var(--blue); color: var(--blue); background: #111820; }
+
+        .new-prop-form {
+            background: #111820; border: 1px solid var(--border);
+            border-radius: 6px; padding: 20px; margin-bottom: 16px; display: none;
+        }
+        .new-prop-form.visible { display: block; }
+        .new-prop-form h4 { margin: 0 0 12px 0; font-size: 0.9rem; }
+        .new-prop-form .form-group { margin-bottom: 12px; }
+        .new-prop-form .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .new-prop-form .form-group input,
+        .new-prop-form .form-group textarea {
+            width: 100%; padding: 8px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-family: inherit; font-size: 0.85rem;
+        }
+        .new-prop-form .form-group textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+        .new-prop-form .form-group input:focus,
+        .new-prop-form .form-group textarea:focus { outline: none; border-color: var(--yellow); }
+        .new-prop-form .form-group .hint { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+        .rate-limit-info { font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; padding: 8px; background: #1c1a10; border-radius: 4px; border: 1px solid #484020; }
+        .btn-submit-prop { width: 100%; padding: 10px; border: none; border-radius: 4px; background: var(--yellow); color: #000; font-weight: bold; cursor: pointer; font-size: 0.85rem; margin-top: 8px; }
+        .btn-submit-prop:hover { background: #f0c040; }
+        .btn-submit-prop:disabled { opacity: 0.4; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -119,7 +194,7 @@
             <a href="/network-map.html">🗺️ Network</a>
             <a href="/notifications.html">🔔 Alerts</a>
             <a href="/recovery.html">🔑 Recovery</a>
-            </div>
+        </div>
     </div>
 </header>
 
@@ -131,58 +206,145 @@
 <div class="layout">
     <!-- LEFT: Proposals -->
     <main>
-        <h2 style="margin-top: 0; font-size: 1.1rem;">Active Matters</h2>
-        <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 16px;">
-            Select a proposal, then cast your vote using your 5 paper keys.
-        </p>
-        <div id="proposalList"><p style="color: var(--muted);">Loading proposals...</p></div>
-    </main>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h2 style="margin-top:0;font-size:1.1rem;">Active Matters</h2>
+        </div>
 
-    <!-- RIGHT: Voting vault -->
-    <aside>
-        <div class="vault">
-            <h3>🗳️ Voting Vault</h3>
-            <p class="hint">Enter all 5 physical paper keys to cast your vote.</p>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search proposals..." oninput="filterProposals()">
+            <span class="count" id="searchCount"></span>
+        </div>
 
-            <div class="form-group">
-                <label>Your User ID</label>
-                <input type="text" id="voterId" placeholder="e.g. alpha" value="alpha">
+        <button class="new-prop-toggle" id="newPropBtn" onclick="toggleNewPropForm()">➕ Submit a Proposal</button>
+
+        <div class="new-prop-form" id="newPropForm">
+            <h4>📝 New Proposal</h4>
+            <div class="rate-limit-info">
+                ⏱️ Each user may submit <strong>one proposal per week</strong>. You'll need your 5 paper keys to authenticate.
             </div>
             <div class="form-group">
-                <label>Proposal</label>
-                <select id="propSelect"></select>
+                <label>Your User ID</label>
+                <input type="text" id="npUser" placeholder="e.g. alpha">
+            </div>
+            <div class="form-group">
+                <label>Proposal Title</label>
+                <input type="text" id="npTitle" placeholder="Brief title of your proposal" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="npDesc" placeholder="Explain the issue, proposed action, and any relevant details (budget, timeline, impact)"></textarea>
+                <div class="hint">Be specific. Other voters will read this before deciding.</div>
             </div>
             <div class="form-group">
                 <label>Key 1</label>
-                <input type="password" id="k1" placeholder="key1_user_a1b2">
+                <input type="password" id="npk1" placeholder="key1_user_a1b2">
             </div>
             <div class="form-group">
                 <label>Key 2</label>
-                <input type="password" id="k2" placeholder="key2_user_c3d4">
+                <input type="password" id="npk2" placeholder="key2_user_c3d4">
             </div>
             <div class="form-group">
                 <label>Key 3</label>
-                <input type="password" id="k3" placeholder="key3_user_e5f6">
+                <input type="password" id="npk3" placeholder="key3_user_e5f6">
             </div>
             <div class="form-group">
                 <label>Key 4</label>
-                <input type="password" id="k4" placeholder="key4_user_g7h8">
+                <input type="password" id="npk4" placeholder="key4_user_g7h8">
             </div>
             <div class="form-group">
                 <label>Key 5</label>
-                <input type="password" id="k5" placeholder="key5_user_i9j0">
+                <input type="password" id="npk5" placeholder="key5_user_i9j0">
+            </div>
+            <button class="btn-submit-prop" id="submitPropBtn" onclick="submitProposal()">📨 Submit Proposal</button>
+            <div id="propMsg" class="msg"></div>
+        </div>
+
+        <div id="proposalList"><p style="color:var(--muted);">Loading proposals...</p></div>
+    </main>
+
+    <!-- RIGHT: Detail panel -->
+    <aside>
+        <div class="detail-panel" id="detailPanel">
+            <div class="placeholder" id="placeholderView">
+                <h3>🗳️ Select a Proposal</h3>
+                <p style="margin:0;">Click any proposal on the left to view details, see who voted, and cast your vote.</p>
             </div>
 
-            <div class="btn-row">
-                <button class="btn btn-pro" onclick="castVote('PRO')">✅ Vote Yes</button>
-                <button class="btn btn-con" onclick="castVote('CON')">❌ Vote No</button>
+            <div id="detailView" style="display:none;">
+                <div class="detail-header">
+                    <h2 id="detailTitle"></h2>
+                    <div class="meta">
+                        <span id="detailId">#—</span>
+                        <span id="detailProposer">by —</span>
+                        <span id="detailTime">⏱️ —</span>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Description</h4>
+                    <p id="detailDesc"></p>
+                </div>
+
+                <div class="detail-tally">
+                    <div class="stat">
+                        <span class="num pro" id="detailProCount">0</span>
+                        <span class="lbl">Yes</span>
+                    </div>
+                    <div class="stat">
+                        <span class="num con" id="detailConCount">0</span>
+                        <span class="lbl">No</span>
+                    </div>
+                    <div class="stat">
+                        <span class="num total" id="detailTotalVotes">0</span>
+                        <span class="lbl">Total</span>
+                    </div>
+                </div>
+
+                <div class="detail-section voters-list">
+                    <h4>Voters</h4>
+                    <div id="detailVoters" style="color:var(--muted);font-size:0.85rem;">No votes yet.</div>
+                </div>
+
+                <div class="vote-form" id="voteForm">
+                    <h4 style="margin:0 0 10px 0;font-size:0.85rem;">🗳️ Cast Your Vote</h4>
+                    <div class="form-group">
+                        <label>Your User ID</label>
+                        <input type="text" id="voterId" placeholder="e.g. alpha" value="alpha">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 1</label>
+                        <input type="password" id="k1" placeholder="key1_user_a1b2">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 2</label>
+                        <input type="password" id="k2" placeholder="key2_user_c3d4">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 3</label>
+                        <input type="password" id="k3" placeholder="key3_user_e5f6">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 4</label>
+                        <input type="password" id="k4" placeholder="key4_user_g7h8">
+                    </div>
+                    <div class="form-group">
+                        <label>Key 5</label>
+                        <input type="password" id="k5" placeholder="key5_user_i9j0">
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-pro" onclick="castVote('PRO')">✅ Vote Yes</button>
+                        <button class="btn btn-con" onclick="castVote('CON')">❌ Vote No</button>
+                    </div>
+                    <div id="voteMsg" class="msg"></div>
+                </div>
+
+                <button class="btn-secondary" onclick="clearSelection()">✕ Close</button>
             </div>
-            <div id="voteMsg" class="msg"></div>
 
             <div class="keys-panel" id="demoKeys">
                 <h4>🔓 Demo Users (click to auto-fill)</h4>
                 <p style="font-size:0.75rem;color:var(--muted);margin:0 0 10px 0;">
-                    These are test accounts with known keys. In production, keys are handed out on physical paper and never stored digitally.
+                    Test accounts with known keys. Click a user to fill voting or proposal form.
                 </p>
                 <div id="userList"></div>
             </div>
@@ -209,7 +371,11 @@ async function loadState() {
             `📋 Proposals: ${Object.keys(proposals).length} active`;
 
         renderProposals();
-        populatePropSelect();
+        if (selectedPropId && proposals[selectedPropId]) {
+            renderDetail(selectedPropId);
+        } else if (selectedPropId) {
+            clearSelection();
+        }
     } catch (e) {
         document.getElementById('proposalList').innerHTML =
             `<p style="color:var(--red);">Failed to load: ${e.message}</p>`;
@@ -225,35 +391,122 @@ async function loadDemoKeys() {
     } catch (e) { /* demo keys unavailable */ }
 }
 
+// --- New Proposal Form ---
+function toggleNewPropForm() {
+    const form = document.getElementById('newPropForm');
+    form.classList.toggle('visible');
+    if (form.classList.contains('visible')) {
+        document.getElementById('newPropBtn').textContent = '✕ Cancel';
+    } else {
+        document.getElementById('newPropBtn').textContent = '➕ Submit a Proposal';
+    }
+}
+
+async function submitProposal() {
+    const user_id = document.getElementById('npUser').value.trim();
+    const text = document.getElementById('npTitle').value.trim();
+    const description = document.getElementById('npDesc').value.trim();
+    const keys = [];
+    for (let i = 1; i <= 5; i++) {
+        keys.push(document.getElementById('npk' + i).value.trim());
+    }
+
+    if (!user_id || !text || keys.some(k => !k)) {
+        showMsg('propMsg', 'Fill in User ID, title, and all 5 keys.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('submitPropBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Submitting...';
+
+    try {
+        const res = await fetch('/api/proposals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id, text, description, keys })
+        });
+        const data = await res.json();
+        if (data.error) {
+            showMsg('propMsg', data.error, 'error');
+        } else {
+            showMsg('propMsg', `✅ Proposal #${data.proposal.id} submitted!`, 'success');
+            // Clear form
+            document.getElementById('npTitle').value = '';
+            document.getElementById('npDesc').value = '';
+            for (let i = 1; i <= 5; i++) document.getElementById('npk' + i).value = '';
+            toggleNewPropForm();
+            loadState();
+        }
+    } catch (e) {
+        showMsg('propMsg', 'Network error: ' + e.message, 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = '📨 Submit Proposal';
+}
+
+// --- Search / Filter ---
+let searchQuery = '';
+
+function filterProposals() {
+    searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+    renderProposals();
+}
+
+function proposalMatches(p, q) {
+    if (!q) return true;
+    return p.text.toLowerCase().includes(q) ||
+           (p.description || '').toLowerCase().includes(q) ||
+           (p.proposer || '').toLowerCase().includes(q) ||
+           String(p.id).includes(q);
+}
+
 // --- Render proposals ---
 function renderProposals() {
     const container = document.getElementById('proposalList');
     const ids = Object.keys(proposals).sort((a, b) => a - b);
-    if (ids.length === 0) {
-        container.innerHTML = '<p style="color:var(--muted);">No proposals yet.</p>';
+
+    const filtered = ids.filter(id => proposalMatches(proposals[id], searchQuery));
+    document.getElementById('searchCount').textContent = filtered.length === ids.length
+        ? `${ids.length} total`
+        : `${filtered.length} / ${ids.length}`;
+
+    if (filtered.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);">No proposals match your search.</p>';
         return;
     }
-    container.innerHTML = ids.map(id => {
+
+    container.innerHTML = filtered.map(id => {
         const p = proposals[id];
         const expired = Date.now() > p.closing_at;
         const total = p.votes_pro + p.votes_con;
         const proPct = total > 0 ? (p.votes_pro / total * 100).toFixed(0) : 0;
         const conPct = total > 0 ? (p.votes_con / total * 100).toFixed(0) : 0;
         const remaining = expired ? 'CLOSED' : timeRemaining(p.closing_at);
+        const isSelected = String(id) === String(selectedPropId);
         return `
-            <div class="prop-card ${expired ? 'expired' : ''}" onclick="selectProposal('${id}')" style="cursor:pointer;">
-                <h3>#${id}: ${p.text}</h3>
-                <p>Pro: ${p.votes_pro} · Con: ${p.votes_con} · Total: ${total} votes</p>
+            <div class="prop-card ${expired ? 'expired' : ''} ${isSelected ? 'selected' : ''}"
+                 onclick="selectProposal('${id}')">
+                <h3>#${id}: ${escHtml(p.text)}</h3>
+                <div class="proposer">by ${escHtml(p.proposer)}</div>
+                <p>${escHtml((p.description || '').substring(0, 120))}${(p.description || '').length > 120 ? '…' : ''}</p>
+                <div class="prop-meta">
+                    <span><span class="badge badge-pro">${p.votes_pro} yes</span> <span class="badge badge-con">${p.votes_con} no</span></span>
+                    <span class="badge">${remaining}</span>
+                </div>
                 <div class="tally-bar">
                     <div class="pro" style="width:${proPct}%"></div>
                     <div class="con" style="width:${conPct}%"></div>
                 </div>
-                <div class="prop-meta">
-                    <span class="badge">${remaining}</span>
-                </div>
             </div>
         `;
     }).join('');
+}
+
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
 }
 
 function timeRemaining(ts) {
@@ -264,17 +517,48 @@ function timeRemaining(ts) {
     return `⏱️ ${h}h ${m}m remaining`;
 }
 
+// --- Select proposal & render detail ---
 function selectProposal(id) {
     selectedPropId = id;
-    document.getElementById('propSelect').value = id;
+    renderDetail(id);
 }
 
-function populatePropSelect() {
-    const sel = document.getElementById('propSelect');
-    sel.innerHTML = Object.keys(proposals).sort((a, b) => a - b).map(id =>
-        `<option value="${id}">#${id}: ${proposals[id].text.substring(0, 50)}...</option>`
-    ).join('');
-    selectedPropId = sel.value;
+function renderDetail(id) {
+    const p = proposals[id];
+    if (!p) return;
+
+    document.getElementById('placeholderView').style.display = 'none';
+    document.getElementById('detailView').style.display = 'block';
+
+    document.getElementById('detailTitle').textContent = `#${p.id}: ${p.text}`;
+    document.getElementById('detailId').textContent = `#${p.id}`;
+    document.getElementById('detailProposer').textContent = `by ${p.proposer}`;
+    document.getElementById('detailTime').textContent = Date.now() > p.closing_at
+        ? '⚠️ CLOSED' : timeRemaining(p.closing_at);
+    document.getElementById('detailDesc').textContent = p.description || '(No description provided)';
+
+    document.getElementById('detailProCount').textContent = p.votes_pro;
+    document.getElementById('detailConCount').textContent = p.votes_con;
+    document.getElementById('detailTotalVotes').textContent = p.votes_pro + p.votes_con;
+
+    const votersEl = document.getElementById('detailVoters');
+    if (p.voters && p.voters.length > 0) {
+        votersEl.innerHTML = p.voters.map(v =>
+            `<span class="badge voter">${escHtml(v)}</span>`
+        ).join(' ');
+    } else {
+        votersEl.textContent = 'No votes yet.';
+    }
+
+    // Update selected highlight in list
+    renderProposals();
+}
+
+function clearSelection() {
+    selectedPropId = null;
+    document.getElementById('placeholderView').style.display = 'block';
+    document.getElementById('detailView').style.display = 'none';
+    renderProposals();
 }
 
 // --- Demo users ---
@@ -289,13 +573,29 @@ function renderUserList() {
 }
 
 function fillKeys(user) {
-    document.getElementById('voterId').value = user;
     const keys = demoKeys[user];
+
+    // Fill voting form keys
     for (let i = 0; i < 5; i++) {
-        document.getElementById('k' + (i + 1)).value = keys[i];
+        const el = document.getElementById('k' + (i + 1));
+        if (el) el.value = keys[i];
     }
+    const voterId = document.getElementById('voterId');
+    if (voterId) voterId.value = user;
+
+    // Fill new proposal form keys too
+    for (let i = 0; i < 5; i++) {
+        const el = document.getElementById('npk' + (i + 1));
+        if (el) el.value = keys[i];
+    }
+    const npUser = document.getElementById('npUser');
+    if (npUser) npUser.value = user;
+
     document.getElementById('voteMsg').className = 'msg';
     document.getElementById('voteMsg').textContent = '';
+    document.getElementById('propMsg').className = 'msg';
+    document.getElementById('propMsg').textContent = '';
+
     // Highlight selected user
     document.querySelectorAll('.user-row').forEach(el => el.classList.remove('active'));
     event.target.closest('.user-row')?.classList.add('active');
@@ -304,12 +604,12 @@ function fillKeys(user) {
 // --- Vote ---
 async function castVote(type) {
     const user_id = document.getElementById('voterId').value.trim();
-    const proposal_id = document.getElementById('propSelect').value;
+    const proposal_id = selectedPropId;
     const keys = [];
     for (let i = 1; i <= 5; i++) {
         keys.push(document.getElementById('k' + i).value.trim());
     }
-    if (!user_id || keys.some(k => !k)) {
+    if (!user_id || keys.some(k => !k) || !proposal_id) {
         showMsg('voteMsg', 'Fill in User ID and all 5 keys.', 'error');
         return;
     }
@@ -325,7 +625,6 @@ async function castVote(type) {
             showMsg('voteMsg', data.error, 'error');
         } else {
             showMsg('voteMsg', `✅ Vote recorded as ${type} on proposal #${proposal_id}!`, 'success');
-            // Clear keys after successful vote (they're single-use in real life)
             for (let i = 1; i <= 5; i++) document.getElementById('k' + i).value = '';
             loadState();
         }
@@ -344,7 +643,6 @@ function showMsg(id, text, type) {
 // --- Init ---
 loadState();
 loadDemoKeys();
-// Refresh proposals every 10 seconds
 setInterval(loadState, 10000);
 </script>
 

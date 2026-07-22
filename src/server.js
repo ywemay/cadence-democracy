@@ -13,6 +13,7 @@ const DB_FILE = path.join(__dirname, '..', 'cadence_ledger.json');
 const LOG_FILE = path.join(__dirname, '..', 'public_runtime.log');
 
 let db = { electorate: {}, proposals: {} };
+let nextProposalId = 106;
 
 // Plaintext keys for demo users — NEVER store this in production
 const DEMO_KEYS = {};
@@ -22,6 +23,21 @@ function writeToPublicLog(action, details) {
     const logEntry = `[${timestamp}] ACTION: ${action} | DETAILS: ${JSON.stringify(details)}\n`;
     fs.appendFileSync(LOG_FILE, logEntry);
     console.log(logEntry.trim());
+}
+
+function migrateProposal(p) {
+    // Ensure all fields exist for legacy DB entries
+    if (!p.description) p.description = '';
+    if (!p.proposer) p.proposer = 'unknown';
+    if (!p.voters) p.voters = [];
+    if (!p.created_at) p.created_at = Date.now();
+    if (!p.closing_at) p.closing_at = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    return p;
+}
+
+function migrateElectorate(u) {
+    if (u.last_proposal_at === undefined) u.last_proposal_at = 0;
+    return u;
 }
 
 function bootstrapDatabase() {
@@ -39,6 +55,17 @@ function bootstrapDatabase() {
 
     if (fs.existsSync(DB_FILE)) {
         db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+        // Migrate existing entries
+        Object.keys(db.proposals).forEach(id => {
+            db.proposals[id] = migrateProposal(db.proposals[id]);
+        });
+        Object.keys(db.electorate).forEach(u => {
+            db.electorate[u] = migrateElectorate(db.electorate[u]);
+        });
+        // Find max proposal id for nextProposalId
+        const ids = Object.keys(db.proposals).map(Number).filter(n => !isNaN(n));
+        if (ids.length > 0) nextProposalId = Math.max(...ids) + 1;
+        fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
         return;
     }
 
@@ -52,23 +79,51 @@ function bootstrapDatabase() {
             key_hash: key_hash,
             recovery_pwd: recovery_pwd,
             status: 'ACTIVE',
-            spent_recovery_cycle: false
+            spent_recovery_cycle: false,
+            last_proposal_at: 0
         };
     });
 
     // Seed 5 proposals
     const now = Date.now();
     const proposals = [
-        { id: 101, text: "Re-structure Regional Agriculture Water Pipelines to bypass industrial commercial farms.", closingOffset: 14 },
-        { id: 102, text: "Allocate community funds for a new public health clinic in the central district.", closingOffset: 7 },
-        { id: 103, text: "Install solar-powered street lighting along the main market road.", closingOffset: 24 },
-        { id: 104, text: "Establish a weekly farmers market with zero vendor fees for local producers.", closingOffset: 3 },
-        { id: 105, text: "Approve emergency road repair budget for the monsoon-damaged north bridge.", closingOffset: 1 }
+        {
+            id: 101, proposer: 'gamma',
+            text: "Re-structure Regional Agriculture Water Pipelines to bypass industrial commercial farms.",
+            description: "The current pipeline network routes water through industrial zones before reaching smallholder farms, resulting in reduced flow and contamination. This proposal would build a dedicated bypass line serving 47 family-owned plots in the northern sector, with maintenance costs covered by a per-acre fee not to exceed 200 rupees monthly.",
+            closingOffset: 14
+        },
+        {
+            id: 102, proposer: 'epsilon',
+            text: "Allocate community funds for a new public health clinic in the central district.",
+            description: "The nearest clinic is 12 km away — inaccessible for elderly residents and those without transport. This proposal allocates 2.4 lakh rupees from the community treasury to convert the vacant municipal building on Market Road into a fully stocked clinic with a part-time nurse and weekly doctor visits.",
+            closingOffset: 7
+        },
+        {
+            id: 103, proposer: 'zeta',
+            text: "Install solar-powered street lighting along the main market road.",
+            description: "The 2.3 km main market road has no public lighting, creating safety hazards after dusk and limiting evening commerce. This proposal covers 42 solar LED poles with battery backup, installed by local electricians, with a projected 8-year lifespan before panel replacement.",
+            closingOffset: 24
+        },
+        {
+            id: 104, proposer: 'theta',
+            text: "Establish a weekly farmers market with zero vendor fees for local producers.",
+            description: "Small farmers currently sell to middlemen at 40% below market rates. A weekly direct-to-consumer market on the community center grounds would let producers keep full proceeds. The proposal includes basic stall infrastructure (tables, shade, water access) funded by a one-time grant of 80,000 rupees.",
+            closingOffset: 3
+        },
+        {
+            id: 105, proposer: 'beta',
+            text: "Approve emergency road repair budget for the monsoon-damaged north bridge.",
+            description: "The north bridge approach road was washed out in last month's monsoon, cutting off 23 households from the main market and school. Emergency repairs are estimated at 1.8 lakh rupees. Without action, the detour adds 45 minutes each way for daily commuters.",
+            closingOffset: 1
+        }
     ];
     proposals.forEach(p => {
         db.proposals[p.id] = {
             id: p.id,
             text: p.text,
+            description: p.description,
+            proposer: p.proposer,
             created_at: now,
             closing_at: now + p.closingOffset * 60 * 60 * 1000,
             votes_pro: 0,
@@ -200,6 +255,50 @@ const server = http.createServer((req, res) => {
             fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
             writeToPublicLog('VOTE_RECORDED', { user_id, proposal_id, vote_type });
             return jsonResponse(res, 200, { success: true });
+        });
+    }
+
+    // API: Create proposal (1 per user per week)
+    if (method === 'POST' && url === '/api/proposals') {
+        return parseBody(req, data => {
+            if (!data) return jsonResponse(res, 400, { error: 'Invalid JSON' });
+            const { user_id, keys, text, description } = data;
+            if (!text || !text.trim())
+                return jsonResponse(res, 400, { error: 'Proposal text is required.' });
+
+            const user = db.electorate[user_id];
+            if (!user || user.status !== 'ACTIVE')
+                return jsonResponse(res, 403, { error: 'User not found or frozen.' });
+            const inputHash = crypto.createHash('sha256').update(keys.join('')).digest('hex');
+            if (inputHash !== user.key_hash)
+                return jsonResponse(res, 401, { error: 'Invalid key combination.' });
+
+            // Rate limit: 1 proposal per 7 days per user
+            const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+            if (user.last_proposal_at > 0 && (Date.now() - user.last_proposal_at) < oneWeekMs) {
+                const daysLeft = Math.ceil((oneWeekMs - (Date.now() - user.last_proposal_at)) / (24 * 60 * 60 * 1000));
+                return jsonResponse(res, 429, { error: `You can submit one proposal per week. ${daysLeft} day(s) remaining.` });
+            }
+
+            const now = Date.now();
+            const id = nextProposalId++;
+            db.proposals[id] = {
+                id,
+                text: text.trim(),
+                description: (description || '').trim(),
+                proposer: user_id,
+                created_at: now,
+                closing_at: now + 7 * 24 * 60 * 60 * 1000,  // default 7-day window
+                votes_pro: 0,
+                votes_con: 0,
+                status: 'OPEN',
+                voters: []
+            };
+            user.last_proposal_at = now;
+
+            fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+            writeToPublicLog('PROPOSAL_CREATED', { id, proposer: user_id, text: text.trim() });
+            return jsonResponse(res, 200, { success: true, proposal: db.proposals[id] });
         });
     }
 
