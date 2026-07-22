@@ -41,8 +41,8 @@
 | File | Description |
 |------|-------------|
 | `computer-stolen.md` | What happens if the barn server is physically stolen |
-| `how a community organizes its first physical registration day.md` | First registration day logistics |
-| `How this system impacts things at country-international level.md` | Country and international-level implications |
+| `first-registration-day.md` | First registration day logistics |
+| `country-international-impact.md` | Country and international-level implications |
 | `impact-and-transition.md` | Transitioning from existing systems |
 | `international.md` | Cross-border federation |
 | `power-of-root-user.md` | Root user powers and trust assumptions |
