@@ -288,11 +288,11 @@
                 <div class="detail-tally">
                     <div class="stat">
                         <span class="num pro" id="detailProCount">0</span>
-                        <span class="lbl">Yes</span>
+                        <span class="lbl">👍 YES</span>
                     </div>
                     <div class="stat">
                         <span class="num con" id="detailConCount">0</span>
-                        <span class="lbl">No</span>
+                        <span class="lbl">👎 NO</span>
                     </div>
                     <div class="stat">
                         <span class="num total" id="detailTotalVotes">0</span>
@@ -491,7 +491,7 @@ function renderProposals() {
                 <div class="proposer">by ${escHtml(p.proposer)}</div>
                 <p>${escHtml((p.description || '').substring(0, 120))}${(p.description || '').length > 120 ? '…' : ''}</p>
                 <div class="prop-meta">
-                    <span><span class="badge badge-pro">${p.votes_pro} yes</span> <span class="badge badge-con">${p.votes_con} no</span></span>
+                    <span><span class="badge badge-pro">👍 ${p.votes_pro}</span> <span class="badge badge-con">👎 ${p.votes_con}</span></span>
                     <span class="badge">${remaining}</span>
                 </div>
                 <div class="tally-bar">
