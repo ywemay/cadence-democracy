@@ -186,7 +186,9 @@ const server = http.createServer((req, res) => {
     const url = req.url.split('?')[0];
     const method = req.method;
 
-    // Static HTML pages
+    // Static HTML pages and CSS
+    if (method === 'GET' && url.startsWith('/styles/') && url.endsWith('.css'))
+        return serveStatic(res, path.join(__dirname, url.substring(1)), 'text/css');
     if (method === 'GET' && (url === '/' || url === '/index.html'))
         return serveStatic(res, path.join(__dirname, 'index.html'), 'text/html');
     if (method === 'GET' && url === '/network-map.html')
