@@ -1,6 +1,15 @@
 # Cadence Democracy Protocol
 
-> A federated, glass-box continuous direct democracy system.
+> **⚠️ DISCLAIMER — Thought Experiment. Not Production Software.**
+> This project is a pure thought experiment exploring the technical and social design of a hypothetical direct-democracy protocol. The code, documentation, and architecture were generated through brainstorming with AI. **None of this has been audited, tested, or validated for real-world use.**
+>
+> Before any deployment involving real people, votes, money, or governance, this system requires:
+> * **Independent security audits** of all code
+> * **Real-world stress testing** with qualified developers
+> * **Legal and ethical review** by domain experts
+> * **Community consent** from every person it would affect
+>
+> Treat everything here as speculative design fiction unless proven otherwise.
 > Security through physical trust, not cryptography.
 
 Cadence Democracy is an open-source protocol for continuous direct democracy with instant recall. It bypasses centralized institutional fraud by moving the security layer from cryptography to physical human interaction — paper keys printed by local volunteers, verified face-to-face.
