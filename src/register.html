@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Cadence Democracy</title>
+    <link rel="stylesheet" href="/styles/base.css">
+    <style>
+        .container { max-width: 640px; margin: 0 auto; }
+
+        .reg-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 28px;
+        }
+        .reg-card h2 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .reg-card .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+
+        .reg-form label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+        .reg-form input {
+            width: 100%; padding: 10px; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+            font-family: monospace; font-size: 0.9rem;
+        }
+        .reg-form input:focus { outline: none; border-color: var(--yellow); }
+        .reg-form .rules { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+        .btn-reg {
+            width: 100%; padding: 12px; border: none; border-radius: 4px;
+            background: var(--yellow); color: #000; font-weight: bold;
+            cursor: pointer; font-size: 0.95rem; margin-top: 16px;
+        }
+        .btn-reg:hover { background: #f0c040; }
+        .btn-reg:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .keys-display { display: none; }
+        .keys-display.visible { display: block; }
+        .keys-display .warn {
+            background: #2b1a10; border: 1px solid #684820;
+            border-radius: 6px; padding: 16px; margin-bottom: 20px;
+            text-align: center;
+        }
+        .keys-display .warn h3 { margin: 0; color: var(--yellow); font-size: 1rem; }
+        .keys-display .warn p { margin: 6px 0 0 0; font-size: 0.85rem; color: #e0b060; }
+
+        .key-list { margin: 0 0 20px 0; }
+        .key-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #0d1117; border: 1px solid #30363d;
+            border-radius: 4px; padding: 12px 16px; margin-bottom: 8px;
+            font-family: monospace; font-size: 0.9rem;
+        }
+        .key-item .num { color: var(--muted); font-size: 0.75rem; margin-right: 10px; }
+        .key-item .key { color: var(--text); letter-spacing: 0.5px; }
+
+        .btn-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-actions button {
+            flex: 1; padding: 10px; border: 1px solid var(--border);
+            border-radius: 4px; background: #21262d; color: var(--text);
+            cursor: pointer; font-size: 0.85rem; min-width: 120px;
+        }
+        .btn-actions button:hover { background: #30363d; }
+        .btn-actions .btn-done { background: var(--green); color: #fff; border-color: var(--green); }
+        .btn-actions .btn-done:hover { background: #2ea043; }
+
+        @media print {
+            header, .nav-links, .btn-actions, .reg-form { display: none !important; }
+            .keys-display { display: block !important; }
+            .keys-display .warn { background: none; border: 2px solid #000; }
+            .keys-display .warn h3 { color: #000; }
+            .keys-display .warn p { color: #333; }
+            .key-item { border: 1px solid #999; background: #fff; color: #000; }
+            .key-item .key { color: #000; }
+            .key-item .num { color: #666; }
+            .reg-card { border: none; padding: 0; background: none; }
+            body { padding: 0; }
+            .container { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>✏️ Voter Registration</h1>
+        <p style="margin:4px 0 0 0;font-size:0.8rem;color:var(--muted);">Issue paper keys to a new community member</p>
+    </div>
+    <div class="nav-links">
+        <a href="/">📋 Proposals</a>
+        <a href="/network-map.html">🗺️ Network</a>
+        <a href="/notifications.html">🔔 Alerts</a>
+        <a href="/recovery.html">🔑 Recovery</a>
+    </div>
+</header>
+
+<div class="container">
+    <div class="reg-card">
+        <!-- Registration form -->
+        <div class="reg-form" id="regForm">
+            <h2>👤 New Voter</h2>
+            <p class="subtitle">Keys must be handed over <strong>in person</strong>. The registrar confirms identity face-to-face before generating keys.</p>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Voter ID</label>
+                <input type="text" id="userId" placeholder="e.g. ramesh_p" maxlength="20" autocomplete="off" spellcheck="false" autofocus>
+                <div class="rules">3–20 characters. Lowercase letters, numbers, underscores only.</div>
+            </div>
+
+            <button class="btn-reg" id="regBtn" onclick="register()">🔑 Generate Keys</button>
+            <div id="regMsg" class="msg"></div>
+        </div>
+
+        <!-- Keys display (shown after registration) -->
+        <div class="keys-display" id="keysDisplay">
+            <div class="warn">
+                <h3>⚠️ SAVE THESE KEYS NOW</h3>
+                <p>These are the <strong>only</strong> time the full keys are visible. They will never be displayed again. Print them or write them down, then hand them to the voter in person.</p>
+            </div>
+
+            <div id="userIdDisplay" style="margin-bottom:12px;font-size:0.85rem;color:var(--muted);">Voter: <strong id="registeredUser" style="color:var(--text);font-family:monospace;"></strong></div>
+
+            <div class="key-list" id="keyList"></div>
+
+            <div class="btn-actions">
+                <button onclick="copyKeys()">📋 Copy All</button>
+                <button onclick="window.print()">🖨️ Print</button>
+                <button class="btn-done" onclick="resetForm()">✅ Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let lastKeys = null;
+
+async function register() {
+    const userId = document.getElementById('userId').value.trim().toLowerCase();
+    const btn = document.getElementById('regBtn');
+    const msg = document.getElementById('regMsg');
+
+    if (!userId || userId.length < 3) {
+        msg.className = 'msg error';
+        msg.textContent = 'User ID must be at least 3 characters.';
+        return;
+    }
+    if (!/^[a-z0-9_]+$/.test(userId)) {
+        msg.className = 'msg error';
+        msg.textContent = 'Use only lowercase letters, numbers, and underscores.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+    msg.className = 'msg';
+
+    try {
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        });
+        const data = await res.json();
+
+        if (data.error) {
+            msg.className = 'msg error';
+            msg.textContent = data.error;
+            btn.disabled = false;
+            btn.textContent = '🔑 Generate Keys';
+            return;
+        }
+
+        // Success — show keys
+        lastKeys = data.keys;
+        document.getElementById('regForm').style.display = 'none';
+        document.getElementById('keysDisplay').classList.add('visible');
+        document.getElementById('registeredUser').textContent = data.user_id;
+        document.getElementById('keyList').innerHTML = data.keys.map((k, i) =>
+            `<div class="key-item"><span><span class="num">KEY ${i + 1}</span><span class="key">${k}</span></span></div>`
+        ).join('');
+        document.title = `Keys issued — ${data.user_id} — Cadence Democracy`;
+
+    } catch (e) {
+        msg.className = 'msg error';
+        msg.textContent = 'Network error: ' + e.message;
+        btn.disabled = false;
+        btn.textContent = '🔑 Generate Keys';
+    }
+}
+
+function copyKeys() {
+    if (!lastKeys) return;
+    const text = lastKeys.map((k, i) => `KEY ${i+1}: ${k}`).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.btn-actions button:first-child');
+        btn.textContent = '✅ Copied!';
+        setTimeout(() => { btn.textContent = '📋 Copy All'; }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    });
+}
+
+function resetForm() {
+    // Clear keys from memory
+    lastKeys = null;
+    document.getElementById('keysDisplay').classList.remove('visible');
+    document.getElementById('regForm').style.display = 'block';
+    document.getElementById('userId').value = '';
+    document.getElementById('userId').focus();
+    document.getElementById('regBtn').disabled = false;
+    document.getElementById('regBtn').textContent = '🔑 Generate Keys';
+    document.getElementById('regMsg').className = 'msg';
+    document.title = 'Register — Cadence Democracy';
+}
+</script>
+</body>
+</html>

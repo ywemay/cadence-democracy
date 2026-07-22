@@ -210,6 +210,8 @@ const server = http.createServer((req, res) => {
         return serveStatic(res, path.join(__dirname, 'recovery.html'), 'text/html');
     if (method === 'GET' && url === '/proposal.html')
         return serveStatic(res, path.join(__dirname, 'proposal.html'), 'text/html');
+    if (method === 'GET' && url === '/register.html')
+        return serveStatic(res, path.join(__dirname, 'register.html'), 'text/html');
 
     // API: Server-Sent Events stream
     if (method === 'GET' && url === '/api/events') {
@@ -330,6 +332,41 @@ const server = http.createServer((req, res) => {
             writeToPublicLog('PROPOSAL_CREATED', { id, proposer: user_id, text: text.trim() });
             emitEvent('proposal-created', { id, text: text.trim(), proposer: user_id });
             return jsonResponse(res, 200, { success: true, proposal: db.proposals[id] });
+        });
+    }
+
+    // API: Register a new voter
+    if (method === 'POST' && url === '/api/register') {
+        return parseBody(req, data => {
+            if (!data) return jsonResponse(res, 400, { error: 'Invalid JSON' });
+            const { user_id } = data;
+            if (!user_id || !user_id.trim())
+                return jsonResponse(res, 400, { error: 'User ID is required.' });
+            if (user_id.length < 3 || user_id.length > 20)
+                return jsonResponse(res, 400, { error: 'User ID must be 3–20 characters.' });
+            if (!/^[a-z0-9_]+$/.test(user_id))
+                return jsonResponse(res, 400, { error: 'Use only lowercase letters, numbers, and underscores.' });
+            if (db.electorate[user_id])
+                return jsonResponse(res, 409, { error: 'User ID already registered.' });
+
+            const keys = Array.from({length: 5}, () => crypto.randomBytes(6).toString('hex'));
+            const key_hash = crypto.createHash('sha256').update(keys.join('')).digest('hex');
+            const recovery_pwd = crypto.createHash('sha256').update(`pwd_${user_id}`).digest('hex');
+
+            db.electorate[user_id] = {
+                user_id,
+                key_hash,
+                recovery_pwd,
+                status: 'ACTIVE',
+                spent_recovery_cycle: false,
+                last_proposal_at: 0,
+                registered_at: Date.now()
+            };
+
+            fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+            writeToPublicLog('VOTER_REGISTERED', { user_id });
+            emitEvent('voter-registered', { user_id });
+            return jsonResponse(res, 200, { success: true, keys, user_id });
         });
     }
 
